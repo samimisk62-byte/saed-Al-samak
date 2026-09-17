@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -302,8 +301,8 @@ pointer-events:none;
 
 .fish.moving{
 animation:
-fishMove 1.7s
-ease-in-out
+fishMove var(--fish-speed, 2.8s)
+linear
 infinite
 alternate;
 }
@@ -311,11 +310,11 @@ alternate;
 @keyframes fishMove{
 
 from{
-transform:translateX(-13px);
+transform:translateX(-45vw);
 }
 
 to{
-transform:translateX(13px);
+transform:translateX(45vw);
 }
 
 }
@@ -1931,19 +1930,15 @@ Math.random()*15)+
 "px";
 
 
-if(
-Math.random()>.35
-){
+if(true){
 
 fish.classList.add(
 "moving"
 );
 
 
-fish.style.animationDuration =
-(1.1+
-Math.random()*2.5)+
-"s";
+let fishSpeed = difficulty === "easy" ? 5.5 : difficulty === "normal" ? 4.5 : 1.6;
+fish.style.setProperty("--fish-speed", fishSpeed + "s");
 
 
 fish.style.animationDelay =
