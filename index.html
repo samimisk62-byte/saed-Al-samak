@@ -6,6 +6,8 @@
 
 <title>🎣 صائد السمك 🎣</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 
 *{
@@ -47,6 +49,104 @@ inset:0;
 width:100%;
 height:100%;
 display:none;
+}
+
+
+/* =========================
+   حماية اللعبة
+========================= */
+
+#accessGate{
+position:fixed;
+inset:0;
+z-index:99999;
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+padding:20px;
+
+background:
+linear-gradient(
+to bottom,
+#39bfe9,
+#0879a8 50%,
+#043e61
+);
+}
+
+.accessCard{
+width:min(94%,430px);
+
+padding:25px;
+
+border-radius:25px;
+
+background:rgba(0,25,45,.95);
+
+border:2px solid rgba(255,255,255,.25);
+
+box-shadow:
+0 12px 40px rgba(0,0,0,.6);
+}
+
+.accessLogo{
+font-size:55px;
+margin-bottom:8px;
+}
+
+.accessCard h2{
+font-size:30px;
+margin:8px 0;
+}
+
+.accessCard p{
+font-size:17px;
+line-height:1.6;
+margin:10px 0 18px;
+}
+
+#loginBox{
+display:none;
+}
+
+#loginBox input{
+display:block;
+width:100%;
+
+padding:13px;
+
+margin:9px 0;
+
+border-radius:12px;
+
+border:2px solid #50c7ef;
+
+background:#f2fbff;
+
+color:#07344d;
+
+font-size:17px;
+}
+
+.accessLoginBtn{
+width:100%;
+margin-top:8px;
+
+background:#13bd6e;
+color:white;
+
+box-shadow:
+0 5px 0 #087844;
+}
+
+.accessHomeBtn{
+width:100%;
+margin-top:12px;
+
+background:#397fd1;
+color:white;
 }
 
 
@@ -239,9 +339,6 @@ opacity:.7;
 pointer-events:none;
 }
 
-
-/* القارب */
-
 .boat{
 position:absolute;
 
@@ -259,9 +356,6 @@ z-index:15;
 pointer-events:none;
 }
 
-
-/* مستوى اللعبة */
-
 .levelBadge{
 position:absolute;
 
@@ -278,9 +372,6 @@ font-size:13px;
 
 z-index:20;
 }
-
-
-/* الأسماك */
 
 .fish{
 position:absolute;
@@ -301,8 +392,8 @@ pointer-events:none;
 
 .fish.moving{
 animation:
-fishMove var(--fish-speed, 2.8s)
-linear
+fishMove 1.7s
+ease-in-out
 infinite
 alternate;
 }
@@ -310,17 +401,14 @@ alternate;
 @keyframes fishMove{
 
 from{
-transform:translateX(-45vw);
+transform:translateX(-13px);
 }
 
 to{
-transform:translateX(45vw);
+transform:translateX(13px);
 }
 
 }
-
-
-/* فقاعات */
 
 .bubble{
 position:absolute;
@@ -359,9 +447,6 @@ opacity:0;
 
 }
 
-
-/* الخط */
-
 #fishingLine{
 position:absolute;
 
@@ -380,9 +465,6 @@ z-index:10;
 pointer-events:none;
 }
 
-
-/* الخطاف */
-
 #hook{
 position:absolute;
 
@@ -399,9 +481,6 @@ pointer-events:none;
 
 white-space:nowrap;
 }
-
-
-/* الرسالة */
 
 .message{
 position:absolute;
@@ -432,9 +511,6 @@ transition:opacity .2s;
 .message.show{
 opacity:1;
 }
-
-
-/* زر الرمي */
 
 .bottomBar{
 height:72px;
@@ -529,11 +605,6 @@ color:white;
 background:#d84d4d;
 color:white;
 }
-
-
-/* =========================
-   القواعد
-========================= */
 
 .rulesList{
 text-align:right;
@@ -649,7 +720,6 @@ background:#397fd1;
 color:white;
 }
 
-
 @media(max-height:600px){
 
 .startBox{
@@ -678,8 +748,66 @@ min-height:60px;
 </style>
 </head>
 
-
 <body>
+
+
+<!-- ==================================================
+     بوابة حماية اللعبة
+================================================== -->
+
+<div id="accessGate">
+
+<div class="accessCard">
+
+<div class="accessLogo">
+🎣🐟
+</div>
+
+<h2>
+صائد السمك
+</h2>
+
+<p id="accessText">
+🔐 جاري التحقق من اشتراكك...
+</p>
+
+<div id="loginBox">
+
+<input
+id="gameEmail"
+type="email"
+placeholder="البريد الإلكتروني"
+autocomplete="email"
+>
+
+<input
+id="gamePassword"
+type="password"
+placeholder="كلمة المرور"
+autocomplete="current-password"
+>
+
+<button
+class="accessLoginBtn"
+onclick="gameLogin()">
+
+🔓 دخول وتشغيل اللعبة
+
+</button>
+
+</div>
+
+<button
+class="accessHomeBtn"
+onclick="goToPlatform()">
+
+🏠 العودة إلى منصة ألعابي
+
+</button>
+
+</div>
+
+</div>
 
 
 <!-- ==================================================
@@ -695,7 +823,6 @@ min-height:60px;
 <div class="subtitle">
 اصطد أكبر عدد من الأسماك واجمع أكبر عدد من النقاط 🌊
 </div>
-
 
 <div class="setting">
 
@@ -721,7 +848,6 @@ min-height:60px;
 
 </div>
 
-
 <div class="setting">
 
 <label>
@@ -746,9 +872,7 @@ min-height:60px;
 
 </div>
 
-
 <div id="playerNames"></div>
-
 
 <button
 class="mainBtn"
@@ -758,7 +882,6 @@ onclick="startGame()">
 
 </button>
 
-
 <button
 class="rulesBtn"
 onclick="showRules()">
@@ -767,11 +890,9 @@ onclick="showRules()">
 
 </button>
 
-
 </div>
 
 </div>
-
 
 
 <!-- ==================================================
@@ -780,42 +901,22 @@ onclick="showRules()">
 
 <div id="gameScreen" class="screen">
 
-
 <div class="topBar">
 
-
 <div class="info">
-
 اللاعب
-
-<strong id="currentPlayer">
----
-</strong>
-
+<strong id="currentPlayer">---</strong>
 </div>
 
-
 <div class="info">
-
 الرميات
-
-<strong id="throwsLeft">
-5
-</strong>
-
+<strong id="throwsLeft">5</strong>
 </div>
-
 
 <div class="info">
-
 النقاط
-
-<strong id="currentPoints">
-0
-</strong>
-
+<strong id="currentPoints">0</strong>
 </div>
-
 
 <button
 class="smallBtn pauseBtn"
@@ -824,7 +925,6 @@ onclick="pauseGame()">
 ⏸️ إيقاف
 
 </button>
-
 
 <button
 class="smallBtn musicBtn"
@@ -835,16 +935,11 @@ id="musicButton">
 
 </button>
 
-
 </div>
-
-
 
 <div id="sea">
 
-
 <div class="waves"></div>
-
 
 <div
 class="levelBadge"
@@ -854,50 +949,36 @@ id="levelBadge">
 
 </div>
 
-
 <div class="boat">
-
 🚤🧑‍🎣
-
 </div>
-
 
 <div id="fishingLine"></div>
 
-
 <div id="hook">
-
 🪝
-
 </div>
-
 
 <div
 class="message"
 id="message">
 </div>
 
-
 </div>
-
-
 
 <div class="bottomBar">
 
 <button
 class="castBtn"
 id="castButton"
-onclick="castHook()">
+onclick="castHook">
 
 🪝 ارمِ الخطاف
-
 </button>
 
 </div>
 
-
 </div>
-
 
 
 <!-- ==================================================
@@ -935,7 +1016,6 @@ onclick="backToStart()">
 </div>
 
 
-
 <!-- ==================================================
      شاشة القواعد
 ================================================== -->
@@ -949,7 +1029,6 @@ id="rulesScreen">
 <h2>
 📖 قواعد لعبة صائد السمك
 </h2>
-
 
 <ol class="rulesList">
 
@@ -987,92 +1066,48 @@ id="rulesScreen">
 
 </ol>
 
-
 <h3>
 🐟 قيمة الأسماك
 </h3>
 
-
 <table class="pointsTable">
 
 <tr>
-<th>
-السمكة
-</th>
-
-<th>
-النقاط
-</th>
+<th>السمكة</th>
+<th>النقاط</th>
 </tr>
 
-
 <tr>
-<td>
-🐟 سردين
-</td>
-
-<td>
-10
-</td>
+<td>🐟 سردين</td>
+<td>10</td>
 </tr>
 
-
 <tr>
-<td>
-🐠 بلطي
-</td>
-
-<td>
-20
-</td>
+<td>🐠 بلطي</td>
+<td>20</td>
 </tr>
 
-
 <tr>
-<td>
-🐡 بوري
-</td>
-
-<td>
-30
-</td>
+<td>🐡 بوري</td>
+<td>30</td>
 </tr>
 
-
 <tr>
-<td>
-🐟 دنيس
-</td>
-
-<td>
-40
-</td>
+<td>🐟 دنيس</td>
+<td>40</td>
 </tr>
 
-
 <tr>
-<td>
-🦈 هامور
-</td>
-
-<td>
-50
-</td>
+<td>🦈 هامور</td>
+<td>50</td>
 </tr>
 
-
 <tr>
-<td>
-🐳 سمكة كبيرة
-</td>
-
-<td>
-60
-</td>
+<td>🐳 سمكة كبيرة</td>
+<td>60</td>
 </tr>
 
 </table>
-
 
 <ul class="rulesList">
 
@@ -1102,7 +1137,6 @@ id="rulesScreen">
 
 </ul>
 
-
 <button
 class="resumeBtn"
 onclick="hideRules()">
@@ -1111,11 +1145,9 @@ onclick="hideRules()">
 
 </button>
 
-
 </div>
 
 </div>
-
 
 
 <!-- ==================================================
@@ -1132,14 +1164,9 @@ class="screen">
 🏆 نتيجة الجولة
 </h2>
 
+<div id="winner"></div>
 
-<div id="winner">
-</div>
-
-
-<div id="scores">
-</div>
-
+<div id="scores"></div>
 
 <button
 class="nextRoundBtn"
@@ -1149,7 +1176,6 @@ onclick="nextRound()">
 
 </button>
 
-
 <button
 class="newGameBtn"
 onclick="backToStart()">
@@ -1158,14 +1184,257 @@ onclick="backToStart()">
 
 </button>
 
-
 </div>
 
 </div>
-
 
 
 <script>
+
+/* ==================================================
+   حماية اللعبة
+================================================== */
+
+const SUPABASE_URL =
+"https://auptwgjiivhglxtdjlnd.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable_6dszOZKIdlA57hHf2E3V5Q_VO-ewwtM";
+
+const sb =
+window.supabase.createClient(
+SUPABASE_URL,
+SUPABASE_KEY
+);
+
+let gameAuthorized = false;
+
+const PLATFORM_URL =
+"https://samimisk62-byte.github.io/samy_gams/";
+
+
+function goToPlatform(){
+
+window.location.href =
+PLATFORM_URL;
+
+}
+
+
+function showLoginGate(message){
+
+document
+.getElementById("accessGate")
+.style.display = "flex";
+
+document
+.getElementById("accessText")
+.textContent = message;
+
+document
+.getElementById("loginBox")
+.style.display = "block";
+
+}
+
+
+function unlockGame(){
+
+gameAuthorized = true;
+
+document
+.getElementById("accessGate")
+.style.display = "none";
+
+}
+
+
+async function checkGameAccess(){
+
+try{
+
+document
+.getElementById("accessText")
+.textContent =
+"🔐 جاري التحقق من اشتراكك...";
+
+const {
+data:{
+session
+}
+} =
+await sb.auth.getSession();
+
+
+if(!session){
+
+showLoginGate(
+"🔒 هذه اللعبة للأعضاء المشتركين. سجّل الدخول بحسابك."
+);
+
+return;
+
+}
+
+
+const response =
+await fetch(
+SUPABASE_URL+
+"/functions/v1/account-game-access",
+{
+method:"POST",
+
+headers:{
+"Authorization":
+"Bearer "+
+session.access_token,
+
+"apikey":
+SUPABASE_KEY,
+
+"Content-Type":
+"application/json"
+}
+);
+
+
+if(!response.ok){
+
+showLoginGate(
+"⚠️ تعذر التحقق من الاشتراك. سجّل الدخول من جديد."
+);
+
+return;
+
+}
+
+
+const data =
+await response.json();
+
+
+const access =
+Array.isArray(data.access)
+?
+data.access
+:
+[];
+
+
+const allowed =
+access.some(
+item=>
+item.game_code==="saed_al_samak" &&
+(
+item.active===true ||
+item.owner===true
+)
+);
+
+
+if(allowed){
+
+unlockGame();
+
+}else{
+
+showLoginGate(
+"🚫 لا يوجد اشتراك نشط للعبة صائد السمك. اشترك من منصة ألعابي أولًا."
+);
+
+}
+
+}catch(error){
+
+console.error(error);
+
+showLoginGate(
+"⚠️ حدث خطأ أثناء التحقق. حاول مرة أخرى."
+);
+
+}
+
+}
+
+
+async function gameLogin(){
+
+const email =
+document
+.getElementById("gameEmail")
+.value
+.trim();
+
+const password =
+document
+.getElementById("gamePassword")
+.value;
+
+
+if(!email || !password){
+
+document
+.getElementById("accessText")
+.textContent =
+"⚠️ اكتب البريد الإلكتروني وكلمة المرور.";
+
+return;
+
+}
+
+
+document
+.getElementById("accessText")
+.textContent =
+"🔐 جاري تسجيل الدخول...";
+
+
+const {
+data,
+error
+} =
+await sb.auth.signInWithPassword({
+email,
+password
+});
+
+
+if(error){
+
+document
+.getElementById("accessText")
+.textContent =
+"❌ البريد الإلكتروني أو كلمة المرور غير صحيحة.";
+
+return;
+
+}
+
+
+if(data.session){
+
+await checkGameAccess();
+
+}
+
+}
+
+
+sb.auth.onAuthStateChange(
+(event,session)=>{
+
+if(event==="SIGNED_OUT"){
+
+gameAuthorized=false;
+
+document
+.getElementById("accessGate")
+.style.display="flex";
+
+}
+
+}
+);
 
 
 /* ==================================================
@@ -1268,7 +1537,6 @@ document.getElementById("playerNames");
 
 container.innerHTML = "";
 
-
 for(let i=0;i<count;i++){
 
 let div =
@@ -1276,7 +1544,6 @@ document.createElement("div");
 
 div.className =
 "setting";
-
 
 let label =
 document.createElement("label");
@@ -1287,7 +1554,6 @@ i===0
 "👤 اسم اللاعب الأول"
 :
 "🤖 اسم الكمبيوتر "+(i+1);
-
 
 let input =
 document.createElement("input");
@@ -1302,14 +1568,12 @@ i===0
 :
 "اسم الكمبيوتر";
 
-
 input.value =
 i===0
 ?
 "اللاعب 1"
 :
 "الكمبيوتر "+(i+1);
-
 
 div.appendChild(label);
 
@@ -1344,7 +1608,6 @@ document
 "flex";
 
 }
-
 
 function hideRules(){
 
@@ -1401,13 +1664,11 @@ try{
 
 startAudio();
 
-
 let osc =
 audioContext.createOscillator();
 
 let gain =
 audioContext.createGain();
-
 
 osc.type =
 type;
@@ -1415,31 +1676,26 @@ type;
 osc.frequency.value =
 freq;
 
-
 gain.gain.setValueAtTime(
 .001,
 audioContext.currentTime
 );
-
 
 gain.gain.exponentialRampToValueAtTime(
 .12,
 audioContext.currentTime+.02
 );
 
-
 gain.gain.exponentialRampToValueAtTime(
 .001,
 audioContext.currentTime+duration
 );
-
 
 osc.connect(gain);
 
 gain.connect(
 audioContext.destination
 );
-
 
 osc.start();
 
@@ -1516,7 +1772,6 @@ return;
 if(musicTimer)
 return;
 
-
 let notes =
 [
 262,
@@ -1524,7 +1779,6 @@ let notes =
 392,
 330
 ];
-
 
 musicTimer =
 setInterval(
@@ -1571,12 +1825,10 @@ function toggleMusic(){
 musicOn =
 !musicOn;
 
-
 let btn =
 document.getElementById(
 "musicButton"
 );
-
 
 if(musicOn){
 
@@ -1605,21 +1857,27 @@ stopMusic();
 
 function startGame(){
 
-startAudio();
+if(!gameAuthorized){
 
+showLoginGate(
+"🔒 يجب تسجيل الدخول والاشتراك لتشغيل اللعبة."
+);
+
+return;
+
+}
+
+startAudio();
 
 playerCount =
 parseInt(
 document.getElementById("playerCount").value
 );
 
-
 difficulty =
 document.getElementById("difficulty").value;
 
-
 players = [];
-
 
 for(
 let i=0;
@@ -1635,7 +1893,6 @@ document
 .value
 .trim();
 
-
 if(!name){
 
 name =
@@ -1646,7 +1903,6 @@ i===0
 "الكمبيوتر "+(i+1);
 
 }
-
 
 players.push({
 
@@ -1662,31 +1918,26 @@ throws:5
 
 }
 
-
 roundNumber = 1;
 
 currentPlayerIndex = 0;
 
 gameStarted = true;
 
-
 document
 .getElementById("startScreen")
 .style.display =
 "none";
-
 
 document
 .getElementById("resultScreen")
 .style.display =
 "none";
 
-
 document
 .getElementById("gameScreen")
 .style.display =
 "flex";
-
 
 let levelText =
 difficulty==="easy"
@@ -1699,12 +1950,10 @@ difficulty==="hard"
 :
 "متوسط";
 
-
 document
 .getElementById("levelBadge")
 .textContent =
 "المستوى: "+levelText;
-
 
 startRound();
 
@@ -1725,9 +1974,7 @@ p.throws=5;
 }
 );
 
-
 currentPlayerIndex = 0;
-
 
 clearFish();
 
@@ -1737,12 +1984,10 @@ prepareHook();
 
 updateInfo();
 
-
 showMessage(
 "🎣 دور "+
 players[0].name
 );
-
 
 setTimeout(
 ()=>{
@@ -1797,7 +2042,6 @@ document.getElementById(
 "sea"
 );
 
-
 for(
 let i=0;
 i<22;
@@ -1812,22 +2056,18 @@ document.createElement(
 bubble.className =
 "bubble";
 
-
 bubble.style.left =
 Math.random()*100+
 "%";
-
 
 bubble.style.animationDuration =
 (4+
 Math.random()*7)+
 "s";
 
-
 bubble.style.animationDelay =
 (-Math.random()*8)+
 "s";
-
 
 sea.appendChild(
 bubble
@@ -1853,28 +2093,21 @@ document.getElementById(
 "sea"
 );
 
-
 createBubbles();
 
-
 let amount = 32;
-
 
 if(roundNumber>=2)
 amount=35;
 
-
 if(roundNumber>=4)
 amount=38;
-
 
 if(difficulty==="easy")
 amount+=4;
 
-
 if(difficulty==="hard")
 amount-=4;
-
 
 for(
 let i=0;
@@ -1890,7 +2123,6 @@ fishTypes.length
 )
 ];
 
-
 let fish =
 document.createElement(
 "div"
@@ -1899,54 +2131,48 @@ document.createElement(
 fish.className =
 "fish";
 
-
 fish.textContent =
 type.emoji;
-
 
 fish.dataset.name =
 type.name;
 
-
 fish.dataset.points =
 type.points;
-
 
 fish.style.left =
 (4+
 Math.random()*90)+
 "%";
 
-
 fish.style.top =
 (23+
 Math.random()*65)+
 "%";
-
 
 fish.style.fontSize =
 (30+
 Math.random()*15)+
 "px";
 
-
-if(true){
+if(
+Math.random()>.35
+){
 
 fish.classList.add(
 "moving"
 );
 
-
-let fishSpeed = difficulty === "easy" ? 5.5 : difficulty === "normal" ? 4.5 : 1.6;
-fish.style.setProperty("--fish-speed", fishSpeed + "s");
-
+fish.style.animationDuration =
+(1.1+
+Math.random()*2.5)+
+"s";
 
 fish.style.animationDelay =
 (-Math.random()*2)+
 "s";
 
 }
-
 
 sea.appendChild(
 fish
@@ -1972,22 +2198,18 @@ players[
 currentPlayerIndex
 ];
 
-
 if(!p)
 return;
-
 
 document
 .getElementById("currentPlayer")
 .textContent =
 p.name;
 
-
 document
 .getElementById("throwsLeft")
 .textContent =
 p.throws;
-
 
 document
 .getElementById("currentPoints")
@@ -2013,25 +2235,21 @@ hookX=50;
 
 hookY=8;
 
-
 let hook =
 document.getElementById(
 "hook"
 );
-
 
 let line =
 document.getElementById(
 "fishingLine"
 );
 
-
 hook.style.left =
 hookX+"%";
 
 hook.style.top =
 hookY+"%";
-
 
 line.style.left =
 hookX+"%";
@@ -2041,7 +2259,6 @@ hookY+"%";
 
 line.style.height =
 "0";
-
 
 document
 .getElementById("castButton")
@@ -2064,23 +2281,19 @@ isCasting
 )
 return;
 
-
 let sea =
 document.getElementById(
 "sea"
 );
 
-
 let rect =
 sea.getBoundingClientRect();
-
 
 let x =
 (
 (clientX-rect.left)/
 rect.width
 )*100;
-
 
 x =
 Math.max(
@@ -2091,35 +2304,26 @@ x
 )
 );
 
-
 hookX=x;
-
 
 let hook =
 document.getElementById(
 "hook"
 );
 
-
 let line =
 document.getElementById(
 "fishingLine"
 );
 
-
 hook.style.left =
 hookX+"%";
-
 
 line.style.left =
 hookX+"%";
 
 }
 
-
-/* ==================================================
-   لمس البحر
-================================================== */
 
 document
 .getElementById("sea")
@@ -2152,18 +2356,17 @@ e.clientX
 function castHook(){
 
 if(
+!gameAuthorized ||
 !gameStarted ||
 isPaused ||
 isCasting
 )
 return;
 
-
 let p =
 players[
 currentPlayerIndex
 ];
-
 
 if(
 !p ||
@@ -2171,21 +2374,16 @@ p.throws<=0
 )
 return;
 
-
 startAudio();
 
-
 isCasting=true;
-
 
 document
 .getElementById("castButton")
 .disabled =
 true;
 
-
 castSound();
-
 
 descendHook();
 
@@ -2209,7 +2407,6 @@ return;
 
 }
 
-
 hookY +=
 difficulty==="easy"
 ?
@@ -2221,22 +2418,18 @@ difficulty==="hard"
 :
 2;
 
-
 let hook =
 document.getElementById(
 "hook"
 );
-
 
 let line =
 document.getElementById(
 "fishingLine"
 );
 
-
 hook.style.top =
 hookY+"%";
-
 
 line.style.height =
 Math.max(
@@ -2244,9 +2437,7 @@ Math.max(
 hookY-8
 )+"%";
 
-
 checkCollision();
-
 
 if(caughtFish){
 
@@ -2256,7 +2447,6 @@ return;
 
 }
 
-
 if(hookY>=91){
 
 returnHook();
@@ -2264,7 +2454,6 @@ returnHook();
 return;
 
 }
-
 
 setTimeout(
 descendHook,
@@ -2283,32 +2472,26 @@ function checkCollision(){
 if(caughtFish)
 return;
 
-
 let hook =
 document.getElementById(
 "hook"
 );
 
-
 let hookRect =
 hook.getBoundingClientRect();
-
 
 let hx =
 hookRect.left+
 hookRect.width/2;
 
-
 let hy =
 hookRect.top+
 hookRect.height/2;
-
 
 let fishes =
 document.querySelectorAll(
 ".fish"
 );
-
 
 for(
 let fish of fishes
@@ -2317,31 +2500,25 @@ let fish of fishes
 let r =
 fish.getBoundingClientRect();
 
-
 let fx =
 r.left+
 r.width/2;
-
 
 let fy =
 r.top+
 r.height/2;
 
-
 let dx =
 hx-fx;
 
-
 let dy =
 hy-fy;
-
 
 let distance =
 Math.sqrt(
 dx*dx+
 dy*dy
 );
-
 
 if(
 distance <
@@ -2366,10 +2543,8 @@ fish.textContent
 
 };
 
-
 caughtFishElement =
 fish;
-
 
 break;
 
@@ -2389,9 +2564,7 @@ function catchFish(){
 if(!caughtFish)
 return;
 
-
 catchSound();
-
 
 showMessage(
 "🎉 اصطدت "+
@@ -2401,7 +2574,6 @@ caughtFish.points+
 " نقطة"
 );
 
-
 if(caughtFishElement){
 
 caughtFishElement.style.display =
@@ -2409,9 +2581,7 @@ caughtFishElement.style.display =
 
 }
 
-
 attachFishToHook();
-
 
 setTimeout(
 returnHook,
@@ -2430,17 +2600,14 @@ function attachFishToHook(){
 if(!caughtFish)
 return;
 
-
 let hook =
 document.getElementById(
 "hook"
 );
 
-
 hook.textContent =
 "🪝"+
 caughtFish.emoji;
-
 
 hook.style.fontSize =
 "30px";
@@ -2465,32 +2632,26 @@ return;
 
 }
 
-
 hookY -= 2.7;
-
 
 let hook =
 document.getElementById(
 "hook"
 );
 
-
 let line =
 document.getElementById(
 "fishingLine"
 );
 
-
 hook.style.top =
 hookY+"%";
-
 
 line.style.height =
 Math.max(
 0,
 hookY-8
 )+"%";
-
 
 if(hookY<=8){
 
@@ -2501,7 +2662,6 @@ finishThrow();
 return;
 
 }
-
 
 setTimeout(
 returnHook,
@@ -2522,7 +2682,6 @@ players[
 currentPlayerIndex
 ];
 
-
 if(caughtFish){
 
 p.points +=
@@ -2532,20 +2691,16 @@ p.fish++;
 
 }
 
-
 p.throws--;
-
 
 caughtFish=null;
 
 caughtFishElement=null;
 
-
 let hook =
 document.getElementById(
 "hook"
 );
-
 
 hook.textContent =
 "🪝";
@@ -2553,9 +2708,7 @@ hook.textContent =
 hook.style.fontSize =
 "34px";
 
-
 updateInfo();
-
 
 if(
 players.every(
@@ -2573,7 +2726,6 @@ return;
 
 }
 
-
 nextTurn();
 
 }
@@ -2587,7 +2739,6 @@ function nextTurn(){
 
 currentPlayerIndex++;
 
-
 if(
 currentPlayerIndex>=
 playerCount
@@ -2597,17 +2748,14 @@ currentPlayerIndex=0;
 
 }
 
-
 prepareHook();
 
 updateInfo();
-
 
 showMessage(
 "🎣 دور "+
 players[currentPlayerIndex].name
 );
-
 
 setTimeout(
 ()=>{
@@ -2658,12 +2806,12 @@ computerThrow,
 function computerThrow(){
 
 if(
+!gameAuthorized ||
 !gameStarted ||
 isPaused ||
 currentPlayerIndex===0
 )
 return;
-
 
 let targetX;
 
@@ -2674,13 +2822,11 @@ document.querySelectorAll(
 )
 );
 
-
 let available =
 fishes.filter(
 f=>
 f.style.display!=="none"
 );
-
 
 if(available.length){
 
@@ -2692,16 +2838,13 @@ available.length
 )
 ];
 
-
 let r =
 fish.getBoundingClientRect();
-
 
 let seaRect =
 document
 .getElementById("sea")
 .getBoundingClientRect();
-
 
 targetX =
 (
@@ -2713,7 +2856,6 @@ seaRect.width
 
 }
 
-
 if(targetX===undefined){
 
 targetX =
@@ -2721,7 +2863,6 @@ targetX =
 Math.random()*80;
 
 }
-
 
 hookX =
 Math.max(
@@ -2732,26 +2873,21 @@ targetX
 )
 );
 
-
 let hook =
 document.getElementById(
 "hook"
 );
-
 
 let line =
 document.getElementById(
 "fishingLine"
 );
 
-
 hook.style.left =
 hookX+"%";
 
-
 line.style.left =
 hookX+"%";
-
 
 setTimeout(
 castHook,
@@ -2772,20 +2908,16 @@ document.getElementById(
 "message"
 );
 
-
 msg.textContent =
 text;
-
 
 msg.classList.add(
 "show"
 );
 
-
 clearTimeout(
 showMessage.timer
 );
-
 
 showMessage.timer =
 setTimeout(
@@ -2808,12 +2940,10 @@ msg.classList.remove(
 
 function pauseGame(){
 
-if(!gameStarted)
+if(!gameAuthorized || !gameStarted)
 return;
 
-
 isPaused=true;
-
 
 document
 .getElementById("pauseOverlay")
@@ -2829,8 +2959,10 @@ document
 
 function resumeGame(){
 
-isPaused=false;
+if(!gameAuthorized)
+return;
 
+isPaused=false;
 
 document
 .getElementById("pauseOverlay")
@@ -2850,17 +2982,14 @@ gameStarted=false;
 
 stopMusic();
 
-
 let sorted =
 [...players].sort(
 (a,b)=>
 b.points-a.points
 );
 
-
 let top =
 sorted[0];
-
 
 document
 .getElementById("winner")
@@ -2871,15 +3000,12 @@ top.name+
 top.points+
 " نقطة";
 
-
 let scores =
 document.getElementById(
 "scores"
 );
 
-
 scores.innerHTML="";
-
 
 players
 .slice()
@@ -2890,16 +3016,13 @@ b.points-a.points
 .forEach(
 (p,index)=>{
 
-
 let row =
 document.createElement(
 "div"
 );
 
-
 row.className =
 "scoreRow";
-
 
 row.innerHTML =
 "<span>"+
@@ -2913,19 +3036,16 @@ p.fish+
 " سمكة"+
 "</span>";
 
-
 scores.appendChild(
 row
 );
 
 });
 
-
 document
 .getElementById("gameScreen")
 .style.display =
 "none";
-
 
 document
 .getElementById("resultScreen")
@@ -2941,8 +3061,10 @@ document
 
 function nextRound(){
 
-roundNumber++;
+if(!gameAuthorized)
+return;
 
+roundNumber++;
 
 players.forEach(
 p=>{
@@ -2956,21 +3078,17 @@ p.throws=5;
 }
 );
 
-
 document
 .getElementById("resultScreen")
 .style.display =
 "none";
-
 
 document
 .getElementById("gameScreen")
 .style.display =
 "flex";
 
-
 gameStarted=true;
-
 
 startAudio();
 
@@ -2987,41 +3105,38 @@ startMusic();
 
 function backToStart(){
 
+if(!gameAuthorized)
+return;
+
 gameStarted=false;
 
 isPaused=false;
 
 isCasting=false;
 
-
 stopMusic();
 
 clearFish();
-
 
 document
 .getElementById("pauseOverlay")
 .style.display =
 "none";
 
-
 document
 .getElementById("rulesScreen")
 .style.display =
 "none";
-
 
 document
 .getElementById("gameScreen")
 .style.display =
 "none";
 
-
 document
 .getElementById("resultScreen")
 .style.display =
 "none";
-
 
 document
 .getElementById("startScreen")
@@ -3041,6 +3156,13 @@ window.addEventListener(
 stopMusic();
 }
 );
+
+
+/* ==================================================
+   بدء التحقق
+================================================== */
+
+checkGameAccess();
 
 </script>
 
