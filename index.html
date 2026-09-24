@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -207,14 +206,9 @@ touch-action:none;
 user-select:none;
 
 background:
-linear-gradient(
-to bottom,
-#42c9ee 0%,
-#159fcf 22%,
-#087eae 45%,
-#055e8c 70%,
-#033e64 100%
-);
+radial-gradient(ellipse at 20% 35%,rgba(91,225,255,.25),transparent 22%),
+radial-gradient(ellipse at 75% 60%,rgba(0,210,230,.16),transparent 25%),
+linear-gradient(to bottom,#52d9f2 0%,#159fce 20%,#0876a7 48%,#04577f 72%,#023957 100%);
 }
 
 .waves{
@@ -251,8 +245,8 @@ left:50%;
 
 transform:translateX(-50%);
 
-font-size:42px;
-
+font-size:64px;
+filter:drop-shadow(0 7px 4px rgba(0,0,0,.35));
 white-space:nowrap;
 
 z-index:15;
@@ -285,6 +279,7 @@ z-index:20;
 
 .fish{
 position:absolute;
+text-shadow:0 4px 5px rgba(0,0,0,.28);
 
 font-size:38px;
 
@@ -311,34 +306,11 @@ alternate;
 /* مفرقعات مخفية: لا تظهر للصياد لكن الخطاف يصطدم بها */
 .hazard{
 position:absolute;
-width:46px;
-height:46px;
+width:58px;
+height:58px;
 opacity:0;
 pointer-events:none;
 z-index:4;
-}
-
-/* انفجار يظهر لحظة اصطدام الخطاف بالمفرقعة فقط */
-.explosionFX{
-position:fixed;
-width:86px;
-height:86px;
-margin-left:-43px;
-margin-top:-43px;
-z-index:9999;
-pointer-events:none;
-font-size:64px;
-line-height:86px;
-text-align:center;
-filter:drop-shadow(0 0 10px rgba(255,120,0,.9));
-animation:explosionPop .7s ease-out forwards;
-}
-
-@keyframes explosionPop{
-0%{transform:scale(.25) rotate(-15deg);opacity:0}
-35%{transform:scale(1.25) rotate(8deg);opacity:1}
-70%{transform:scale(1) rotate(-4deg);opacity:1}
-100%{transform:scale(1.5) rotate(8deg);opacity:0}
 }
 
 @keyframes fishMove{
@@ -354,6 +326,12 @@ transform:translateX(45vw);
 }
 
 
+/* تفاصيل البحر */
+.seaweed{position:absolute;bottom:0;font-size:46px;opacity:.55;z-index:2;pointer-events:none;animation:sway 2.8s ease-in-out infinite alternate}
+.shadowFish{position:absolute;font-size:26px;opacity:.18;filter:blur(1px);animation:deepSwim 8s linear infinite alternate;pointer-events:none;z-index:1}
+@keyframes sway{from{transform:rotate(-5deg)}to{transform:rotate(5deg)}}
+@keyframes deepSwim{from{transform:translateX(-20vw)}to{transform:translateX(20vw)}}
+.bombVisible{opacity:1!important;font-size:30px!important;text-align:center;}
 /* فقاعات */
 
 .bubble{
@@ -425,7 +403,7 @@ left:50%;
 
 transform:translateX(-50%);
 
-font-size:34px;
+font-size:48px;
 
 z-index:16;
 
@@ -746,9 +724,15 @@ min-height:60px;
 
 
 <div class="setting">
+<label>🎮 طريقة اللعب</label>
+<select id="playMode" onchange="updateModeUI()">
+<option value="local">👥 لاعبان حقيقيان على نفس الموبايل</option>
+<option value="computer">🤖 لاعب ضد الكمبيوتر</option>
+</select>
+</div>
 
-<label>
-👥 عدد اللاعبين
+<div class="setting" id="countSetting">
+<label>👥 عدد اللاعبين
 </label>
 
 <select id="playerCount">
@@ -1006,11 +990,11 @@ id="rulesScreen">
 </li>
 
 <li>
-اللاعب الأول يلعب بنفسه، وباقي اللاعبين يتحكم فيهم الكمبيوتر.
+في وضع لاعبين: كل لاعب يلعب بنفسه بالتبادل على نفس الموبايل. وفي وضع الكمبيوتر، اللاعب الأول بشري والباقي كمبيوتر.
 </li>
 
 <li>
-كل لاعب لديه 20 رمية في كل مرحلة.
+كل لاعب لديه 20 رمية في كل جولة.
 </li>
 
 <li>
@@ -1023,18 +1007,6 @@ id="rulesScreen">
 
 <li>
 أثناء نزول الخطاف يمكنك توجيهه يمينًا ويسارًا.
-</li>
-
-<li>
-كل لاعب لديه 20 رمية في كل مرحلة، وإذا أكملها دون مفرقعة ينتقل الجميع للمرحلة التالية.
-</li>
-
-<li>
-توجد مفرقعات ومفاجآت مخفية داخل البحر؛ إذا لمسها الخطاف يخسر اللاعب دوره ويُعاد دوره من البداية بـ20 رمية.
-</li>
-
-<li>
-تزداد صعوبة المراحل تدريجيًا: تتحرك الأسماك أسرع وتزداد المفرقعات حتى المراحل المتقدمة، والمراحل مستمرة بلا حد أقصى.
 </li>
 
 <li>
@@ -1145,7 +1117,7 @@ id="rulesScreen">
 </li>
 
 <li>
-بعد انتهاء الرميات الخمس لكل اللاعبين يتم حساب النقاط.
+كل لاعب يحتاج إلى صيد 20 سمكة للانتقال إلى المرحلة التالية.
 </li>
 
 <li>
@@ -1153,7 +1125,7 @@ id="rulesScreen">
 </li>
 
 <li>
-بعد النتيجة يمكن بدء جولة جديدة.
+بعد نجاح الجميع في 20 سمكة تنتقل اللعبة تلقائيًا إلى مرحلة جديدة إلى ما لا نهاية.
 </li>
 
 <li>
@@ -1273,6 +1245,7 @@ let difficulty = "normal";
 let currentPlayerIndex = 0;
 
 let roundNumber = 1;
+let stageTarget = 20;
 
 let hookX = 50;
 
@@ -1323,10 +1296,7 @@ const fishTypes = [
 
 function createNames(){
 
-let count =
-parseInt(
-document.getElementById("playerCount").value
-);
+let count = document.getElementById("playMode").value === "local" ? 2 : parseInt(document.getElementById("playerCount").value);
 
 let container =
 document.getElementById("playerNames");
@@ -1347,11 +1317,7 @@ let label =
 document.createElement("label");
 
 label.textContent =
-i===0
-?
-"👤 اسم اللاعب الأول"
-:
-"🤖 اسم الكمبيوتر "+(i+1);
+(document.getElementById("playMode").value === "local" || i===0) ? "👤 اسم اللاعب "+(i+1) : "🤖 اسم الكمبيوتر "+(i+1);
 
 
 let input =
@@ -1361,19 +1327,11 @@ input.id =
 "playerName"+i;
 
 input.placeholder =
-i===0
-?
-"اكتب اسمك"
-:
-"اسم الكمبيوتر";
+(document.getElementById("playMode").value === "local" || i===0) ? "اكتب اسم اللاعب" : "اسم الكمبيوتر";
 
 
 input.value =
-i===0
-?
-"اللاعب 1"
-:
-"الكمبيوتر "+(i+1);
+(document.getElementById("playMode").value === "local" || i===0) ? "اللاعب "+(i+1) : "الكمبيوتر "+(i+1);
 
 
 div.appendChild(label);
@@ -1394,8 +1352,14 @@ document
 createNames
 );
 
-createNames();
+function updateModeUI(){
+ const local = document.getElementById("playMode").value === "local";
+ document.getElementById("countSetting").style.display = local ? "none" : "block";
+ createNames();
+}
 
+createNames();
+updateModeUI();
 
 /* ==================================================
    القواعد
@@ -1488,7 +1452,7 @@ audioContext.currentTime
 
 
 gain.gain.exponentialRampToValueAtTime(
-.28,
+.12,
 audioContext.currentTime+.02
 );
 
@@ -1558,56 +1522,6 @@ sound(
 },
 150
 );
-
-}
-
-
-function bombSound(){
-
-/* صوت مفرقعة/قنبلة قوي: انفجار منخفض + طقطقة حادة + ضوضاء قصيرة */
-if(!musicOn) return;
-
-try{
-startAudio();
-let now=audioContext.currentTime;
-
-let boom=audioContext.createOscillator();
-let boomGain=audioContext.createGain();
-boom.type="sawtooth";
-boom.frequency.setValueAtTime(115,now);
-boom.frequency.exponentialRampToValueAtTime(38,now+.48);
-boomGain.gain.setValueAtTime(.001,now);
-boomGain.gain.exponentialRampToValueAtTime(.75,now+.025);
-boomGain.gain.exponentialRampToValueAtTime(.001,now+.55);
-boom.connect(boomGain); boomGain.connect(audioContext.destination);
-boom.start(now); boom.stop(now+.58);
-
-let crack=audioContext.createOscillator();
-let crackGain=audioContext.createGain();
-crack.type="square";
-crack.frequency.setValueAtTime(900,now);
-crack.frequency.exponentialRampToValueAtTime(180,now+.22);
-crackGain.gain.setValueAtTime(.001,now);
-crackGain.gain.exponentialRampToValueAtTime(.38,now+.008);
-crackGain.gain.exponentialRampToValueAtTime(.001,now+.25);
-crack.connect(crackGain); crackGain.connect(audioContext.destination);
-crack.start(now); crack.stop(now+.28);
-
-let buffer=audioContext.createBuffer(1,audioContext.sampleRate*.55,audioContext.sampleRate);
-let data=buffer.getChannelData(0);
-for(let i=0;i<data.length;i++){
-  let t=i/data.length;
-  data[i]=(Math.random()*2-1)*(1-t)*.9;
-}
-let noise=audioContext.createBufferSource();
-let noiseGain=audioContext.createGain();
-noise.buffer=buffer;
-noiseGain.gain.setValueAtTime(.001,now);
-noiseGain.gain.exponentialRampToValueAtTime(.5,now+.015);
-noiseGain.gain.exponentialRampToValueAtTime(.001,now+.55);
-noise.connect(noiseGain); noiseGain.connect(audioContext.destination);
-noise.start(now);
-}catch(e){}
 
 }
 
@@ -1725,10 +1639,7 @@ if(!gameAuthorized)return;
 startAudio();
 
 
-playerCount =
-parseInt(
-document.getElementById("playerCount").value
-);
+playerCount = document.getElementById("playMode").value === "local" ? 2 : parseInt(document.getElementById("playerCount").value);
 
 
 difficulty =
@@ -1756,11 +1667,7 @@ document
 if(!name){
 
 name =
-i===0
-?
-"اللاعب 1"
-:
-"الكمبيوتر "+(i+1);
+(document.getElementById("playMode").value === "local" || i===0) ? "اللاعب "+(i+1) : "الكمبيوتر "+(i+1);
 
 }
 
@@ -1773,7 +1680,8 @@ points:0,
 
 fish:0,
 
-throws:20
+throws:20,
+stageFish:0
 
 });
 
@@ -1781,7 +1689,7 @@ throws:20
 
 
 roundNumber = 1;
-
+players.forEach(p=>p.stageFish=0);
 currentPlayerIndex = 0;
 
 gameStarted = true;
@@ -1820,7 +1728,7 @@ difficulty==="hard"
 document
 .getElementById("levelBadge")
 .textContent =
-"المرحلة: 1 — "+levelText;
+"المرحلة: 1 — الهدف 20 سمكة — "+levelText;
 
 
 startRound();
@@ -1963,6 +1871,20 @@ bubble
    إنشاء الأسماك
 ================================================== */
 
+function createSeaLife(){
+  document.querySelectorAll(".seaweed,.shadowFish").forEach(e=>e.remove());
+  const sea=document.getElementById("sea");
+  for(let i=0;i<7;i++){
+    const w=document.createElement("div"); w.className="seaweed"; w.textContent=i%2?"🌿":"🌊";
+    w.style.left=(i*14+Math.random()*7)+"%"; sea.appendChild(w); fishElements.push(w);
+  }
+  for(let i=0;i<6;i++){
+    const f=document.createElement("div"); f.className="shadowFish"; f.textContent="🐟";
+    f.style.left=(Math.random()*85)+"%"; f.style.top=(35+Math.random()*50)+"%";
+    f.style.animationDuration=(6+Math.random()*7)+"s"; f.style.animationDelay=(-Math.random()*6)+"s"; sea.appendChild(f); fishElements.push(f);
+  }
+}
+
 function createFish(){
 
 let sea =
@@ -1972,7 +1894,7 @@ document.getElementById(
 
 
 createBubbles();
-
+createSeaLife();
 
 let amount = 32;
 
@@ -2054,8 +1976,7 @@ fish.classList.add(
 );
 
 
-let stageBoost = Math.min(2.2, (roundNumber - 1) * 0.12);
-let fishSpeed = difficulty === "easy" ? Math.max(2.5, 5.5 - stageBoost) : difficulty === "normal" ? Math.max(1.9, 4.5 - stageBoost) : Math.max(0.75, 1.6 - stageBoost);
+let fishSpeed = difficulty === "easy" ? 5.5 : difficulty === "normal" ? 4.5 : 1.6;
 fish.style.setProperty("--fish-speed", fishSpeed + "s");
 
 
@@ -2076,30 +1997,17 @@ fish
 
 }
 
-/* مفاجآت مفرقعات مخفية داخل البحر — تزداد تدريجيًا مع كل مرحلة */
-let bombCount = Math.min(14, 3 + Math.floor((roundNumber - 1) * 0.7));
+/* مفرقعات مخفية داخل البحر - أماكنها عشوائية ولا تظهر للصياد */
+let bombCount = 3 + Math.min(3, roundNumber);
 if(difficulty === "hard") bombCount += 2;
 
-let bombSpots = [];
 for(let i=0;i<bombCount;i++){
 
 let bomb = document.createElement("div");
 bomb.className = "hazard";
 bomb.dataset.hazard = "bomb";
-
-/* لا نضع المفرقعة ملاصقة لبداية الخطاف، ولا فوق مفرقعة أخرى */
-let left = 8 + Math.random()*84;
-let top = 30 + Math.random()*52;
-let tries = 0;
-while(tries < 20 && bombSpots.some(pos => Math.hypot(pos.left-left, pos.top-top) < 9)){
-  left = 8 + Math.random()*84;
-  top = 30 + Math.random()*52;
-  tries++;
-}
-bombSpots.push({left,top});
-
-bomb.style.left = left + "%";
-bomb.style.top = top + "%";
+bomb.style.left = (5 + Math.random()*88) + "%";
+bomb.style.top = (27 + Math.random()*58) + "%";
 
 sea.appendChild(bomb);
 fishElements.push(bomb);
@@ -2485,23 +2393,13 @@ let p = players[currentPlayerIndex];
 isCasting = false;
 
 try{
-  bombSound();
+  catchSound();
 }catch(e){}
 
-/* إظهار انفجار لحظة الاصطدام فقط، ثم إعادة الدور من 20 رمية */
-let seaBox = document.getElementById("sea");
-if(caughtBomb && seaBox){
-  let r = caughtBomb.getBoundingClientRect();
-  let fx = document.createElement("div");
-  fx.className = "explosionFX";
-  fx.textContent = "💥";
-  fx.style.left = (r.left + r.width/2) + "px";
-  fx.style.top = (r.top + r.height/2) + "px";
-  document.body.appendChild(fx);
-  setTimeout(()=>fx.remove(), 750);
-}
-
-showMessage("💥 مفرقعة! خسرت الدور — سيبدأ دورك من جديد بـ 20 رمية");
+/* المفرقعة لا تظهر للصياد؛ نعرض فقط نتيجة الاصطدام */
+showMessage("💥 مفرقعة! خسرت دورك — سيعاد الدور من البداية");
+  const hb=document.getElementById("hook"); hb.textContent="💥"; hb.classList.add("bombVisible");
+  setTimeout(()=>{hb.classList.remove("bombVisible"); hb.textContent="🪝";},700);
 
 /* لا نكشف مكان المفرقعة، ونبدأ دور هذا اللاعب من جديد */
 clearFish();
@@ -2676,6 +2574,7 @@ p.points +=
 caughtFish.points;
 
 p.fish++;
+  p.stageFish++;
 
 }
 
@@ -2778,13 +2677,9 @@ computerOrHuman();
 
 function computerOrHuman(){
 
-if(
-currentPlayerIndex===0
-){
+if(document.getElementById("playMode").value === "local" || currentPlayerIndex===0){
 
-showMessage(
-"👤 حرّك الخطاف بإصبعك ثم اضغط «ارمِ الخطاف»"
-);
+showMessage("🎣 دور "+players[currentPlayerIndex].name+" — حرّك الخطاف واضغط ارمِ الخطاف");
 
 }else{
 
@@ -2992,20 +2887,24 @@ document
 ================================================== */
 
 function finishRound(){
-
-/* بعد إتمام 20 رمية لكل اللاعبين: ننتقل للمرحلة التالية بلا حد أقصى */
-showMessage("🏆 أحسنت! اجتزتم المرحلة "+roundNumber+" — المرحلة التالية أصعب");
-
-setTimeout(()=>{
-  if(!gameStarted) return;
-  roundNumber++;
-  let levelText = difficulty==="easy" ? "سهل" : difficulty==="hard" ? "صعب" : "متوسط";
-  document.getElementById("levelBadge").textContent =
-    "المرحلة: "+roundNumber+" — "+levelText;
-  startRound();
-}, 1400);
-
+  const everyonePassed = players.every(p=>p.stageFish >= stageTarget);
+  if(!everyonePassed){ startRound(); return; }
+  showMessage("🏆 ممتاز! الجميع وصل إلى "+stageTarget+" سمكة — المرحلة التالية!");
+  sound(660,.18,"triangle");
+  setTimeout(()=>{
+    if(!gameStarted) return;
+    roundNumber++;
+    players.forEach(p=>{p.stageFish=0;p.throws=20;});
+    document.getElementById("levelBadge").textContent =
+      "المرحلة: "+roundNumber+" — الهدف "+stageTarget+" سمكة — "+
+      (difficulty==="easy"?"سهل":difficulty==="hard"?"صعب":"متوسط");
+    startRound();
+  },1400);
 }
+
+/* ==================================================
+   الجولة التالية
+================================================== */
 
 function nextRound(){
 
@@ -3014,6 +2913,7 @@ roundNumber=1;
 players.forEach(p=>{
   p.points=0;
   p.fish=0;
+  p.stageFish=0;
   p.throws=20;
 });
 
@@ -3022,7 +2922,7 @@ document.getElementById("gameScreen").style.display="flex";
 gameStarted=true;
 
 document.getElementById("levelBadge").textContent =
-  "المرحلة: 1 — "+
+  "المرحلة: 1 — الهدف 20 سمكة — "+
   (difficulty==="easy"?"سهل":difficulty==="hard"?"صعب":"متوسط");
 
 startRound();
