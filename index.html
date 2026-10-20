@@ -122,6 +122,13 @@ transform:scale(var(--scene-zoom,1));
 transform-origin:50% 50%;
 }
 
+/* تموّجات الماء تتغير حسب المرحلة */
+#sea::before,#sea::after{content:"";position:absolute;inset:-20% -35%;pointer-events:none;z-index:4;opacity:var(--wave-opacity,.28);background:repeating-linear-gradient(168deg,transparent 0 22px,#d9fbff55 23px,#ffffff18 26px,transparent 31px 54px);animation:waveDrift var(--wave-duration,3.2s) linear infinite}
+#sea::after{inset:-10% -45%;opacity:calc(var(--wave-opacity,.28)*.65);background:repeating-linear-gradient(12deg,transparent 0 30px,#8cecff44 31px,#ffffff12 34px,transparent 39px 68px);animation-direction:reverse;animation-duration:calc(var(--wave-duration,3.2s)*1.45)}
+@keyframes waveDrift{from{transform:translateX(-8%) translateY(0)}to{transform:translateX(8%) translateY(12px)}}
+#waterMood{position:absolute;top:67px;right:8px;z-index:110;padding:6px 10px;border:1px solid #ffffff66;border-radius:12px;background:#002b46cc;color:#fff;font-size:12px;font-weight:bold;pointer-events:none}
+@media(prefers-reduced-motion:reduce){#sea::before,#sea::after{animation:none}}
+
 /* القارب */
 #boat{
 position:absolute;
@@ -550,6 +557,8 @@ padding:10px 11px;
 </div>
 
 <!-- البحر -->
+<div id="waterMood" aria-live="polite">🌊 البحر الاستوائي</div>
+
 <div id="sea">
 
 <div id="rope"></div>
@@ -572,6 +581,8 @@ padding:10px 11px;
 <button class="ruleBtn" onclick="openRules()">
 📖 القواعد
 </button>
+
+<button id="soundToggle" type="button" onclick="toggleSound()">🔊 الصوت</button>
 
 </div>
 
@@ -812,6 +823,8 @@ document.getElementById("message").style.display="none";
 gameRunning=true;
 paused=false;
 level=Math.max(1,Number(stageNumber)||1);
+applyStageEnvironment(level);
+startWaveSound();
 selectedStage=level;
 score=0;
 throws=20;
@@ -860,7 +873,8 @@ function createBubbles(){
 
 document.querySelectorAll(".bubble").forEach(x=>x.remove());
 
-for(let i=0;i<20;i++){
+const bubbleCount=Math.min(20+Math.floor(level*1.5),42);
+for(let i=0;i<bubbleCount;i++){
 
 let b=document.createElement("div");
 
@@ -1137,6 +1151,7 @@ if(throwing)return;
 if(throws<=0)return;
 
 throwing=true;
+playGameTone("splash");
 
 let seaHeight=
 document.getElementById("sea").clientHeight;
@@ -1379,6 +1394,7 @@ o.element.remove();
 function dangerHit(icon,title){
 
 gameRunning=false;
+stopWaveSound();
 
 throwing=false;
 
@@ -1481,6 +1497,7 @@ title,
 function endRound(){
 
 gameRunning=false;
+stopWaveSound();
 const goal=20+(level-1)*5;
 roundWon=score>=goal;
 
@@ -1635,6 +1652,7 @@ function applyZoom(){
 
 function showStageMap(){
   gameRunning=false;
+  stopWaveSound();
   paused=false;
   document.getElementById("message").style.display="none";
   document.getElementById("startScreen").style.display="none";
@@ -1702,6 +1720,7 @@ function pauseGame(){
 if(!gameRunning)return;
 
 paused=!paused;
+setWaveVolume(paused?0:0.035);
 
 document.querySelector(".pauseBtn").textContent=
 paused
@@ -1730,11 +1749,106 @@ document.getElementById("rules").style.display=
 }
 
 
+
+/* ==========================
+   تطور البحر والأصوات
+========================== */
+let soundEnabled=true;
+let waveAudioContext=null;
+let waveSource=null;
+let waveMaster=null;
+let waveLfo=null;
+let waveLfoGain=null;
+
+const waterThemes=[
+ {name:"البحر الاستوائي",emoji:"🌴",bg:"linear-gradient(#75d8f5 0%,#b8f0ff 17%,#16a6c8 17%,#087da5 48%,#075174 75%,#032d4b 100%)"},
+ {name:"المياه الفيروزية",emoji:"🩵",bg:"linear-gradient(#8be8ff 0%,#d5faff 17%,#20c7c7 17%,#078eaa 48%,#06627d 75%,#03394e 100%)"},
+ {name:"بحر المرجان",emoji:"🪸",bg:"linear-gradient(#ffcc9c 0%,#ffe7bd 17%,#20b6b0 17%,#087f9b 48%,#07536f 75%,#032d4b 100%)"},
+ {name:"البحر العميق",emoji:"🌊",bg:"linear-gradient(#5ba5d7 0%,#a5d5ef 17%,#087fa8 17%,#075b88 48%,#063d68 75%,#021d3b 100%)"},
+ {name:"بحر الغروب",emoji:"🌅",bg:"linear-gradient(#ff9e80 0%,#ffe0a8 17%,#168fae 17%,#076b91 48%,#064567 75%,#022a45 100%)"},
+ {name:"البحر العاصف",emoji:"⛈️",bg:"linear-gradient(#657d9b 0%,#a7bac8 17%,#247c9b 17%,#075776 48%,#033b59 75%,#011b31 100%)"},
+ {name:"المياه القطبية",emoji:"🧊",bg:"linear-gradient(#b4f2ff 0%,#effcff 17%,#56c9e6 17%,#167eac 48%,#07547f 75%,#032d4b 100%)"},
+ {name:"بحر الليل",emoji:"🌙",bg:"linear-gradient(#202f64 0%,#536a99 17%,#105b91 17%,#07436f 48%,#042e55 75%,#01172e 100%)"}
+];
+
+function applyStageEnvironment(stage){
+ const theme=waterThemes[(Math.max(1,stage)-1)%waterThemes.length];
+ const g=document.getElementById("game");
+ const sea=document.getElementById("sea");
+ const mood=document.getElementById("waterMood");
+ if(g)g.style.background=theme.bg;
+ if(mood)mood.textContent=theme.emoji+" "+theme.name+" · مرحلة "+stage;
+ if(sea){
+   sea.style.setProperty("--wave-duration",Math.max(1.15,3.5-Math.min(stage-1,24)*0.085)+"s");
+   sea.style.setProperty("--wave-opacity",Math.min(.55,.22+stage*.012));
+ }
+}
+
+function startWaveSound(){
+ if(!soundEnabled)return;
+ try{
+   const AC=window.AudioContext||window.webkitAudioContext;
+   if(!AC)return;
+   if(!waveAudioContext)waveAudioContext=new AC();
+   if(waveSource){setWaveVolume(paused?0:0.035);return;}
+   const ctx=waveAudioContext;
+   const length=Math.floor(ctx.sampleRate*2.5);
+   const buffer=ctx.createBuffer(1,length,ctx.sampleRate);
+   const data=buffer.getChannelData(0);
+   let smooth=0;
+   for(let i=0;i<length;i++){smooth=smooth*.88+(Math.random()*2-1)*.12;data[i]=smooth*2.5;}
+   waveSource=ctx.createBufferSource();
+   waveSource.buffer=buffer;
+   waveSource.loop=true;
+   const filter=ctx.createBiquadFilter();
+   filter.type="lowpass";
+   filter.frequency.value=720;
+   const swell=ctx.createGain();
+   swell.gain.value=.65;
+   waveLfo=ctx.createOscillator();
+   waveLfo.type="sine";
+   waveLfo.frequency.value=.18;
+   waveLfoGain=ctx.createGain();
+   waveLfoGain.gain.value=.18;
+   waveLfo.connect(waveLfoGain);
+   waveLfoGain.connect(swell.gain);
+   waveMaster=ctx.createGain();
+   waveMaster.gain.value=0;
+   waveSource.connect(filter);
+   filter.connect(swell);
+   swell.connect(waveMaster);
+   waveMaster.connect(ctx.destination);
+   waveSource.start();
+   waveLfo.start();
+   if(ctx.state==="suspended")ctx.resume();
+   setWaveVolume(paused?0:.035);
+ }catch(e){}
+}
+function setWaveVolume(value){
+ if(waveMaster&&waveAudioContext)waveMaster.gain.setTargetAtTime(soundEnabled?value:0,waveAudioContext.currentTime,.25);
+}
+function stopWaveSound(){
+ try{
+   if(waveSource){waveSource.stop();waveSource.disconnect();waveSource=null;}
+   if(waveLfo){waveLfo.stop();waveLfo.disconnect();waveLfo=null;}
+   if(waveLfoGain){waveLfoGain.disconnect();waveLfoGain=null;}
+   if(waveMaster){waveMaster.disconnect();waveMaster=null;}
+ }catch(e){}
+}
+function toggleSound(){
+ soundEnabled=!soundEnabled;
+ const b=document.getElementById("soundToggle");
+ if(b)b.textContent=soundEnabled?"🔊 الصوت":"🔇 الصوت";
+ if(soundEnabled){startWaveSound();setWaveVolume(paused?0:.035);}
+ else{setWaveVolume(0);}
+}
+
 /* ==========================
    صوت الانفجار
 ========================== */
 
 function playGameTone(type){
+if(!soundEnabled)return;
 try{
 const AudioCtx=window.AudioContext||window.webkitAudioContext;
 if(!AudioCtx)return;
@@ -1752,6 +1866,14 @@ gain.gain.setValueAtTime(0.0001,now);
 gain.gain.exponentialRampToValueAtTime(0.22,now+0.02);
 gain.gain.exponentialRampToValueAtTime(0.0001,now+0.24);
 osc.start(now);osc.stop(now+0.25);
+}else if(type==="splash"){
+osc.type="sine";
+osc.frequency.setValueAtTime(520,now);
+osc.frequency.exponentialRampToValueAtTime(150,now+0.18);
+gain.gain.setValueAtTime(0.0001,now);
+gain.gain.exponentialRampToValueAtTime(0.13,now+0.012);
+gain.gain.exponentialRampToValueAtTime(0.0001,now+0.2);
+osc.start(now);osc.stop(now+0.21);
 }else if(type==="firecracker"){
 osc.type="square";
 osc.frequency.setValueAtTime(850,now);
@@ -1773,7 +1895,7 @@ osc.onended=()=>{ctx.close().catch(()=>{});};
 if(ctx.state==="suspended")ctx.resume().catch(()=>{});
 }catch(e){}
 }
-function catchSound(){playGameTone("catch");}
+function catchSound(){playGameTone("catch");playGameTone("splash");}
 function firecrackerSound(){playGameTone("firecracker");}
 function explosionSound(){playGameTone("explosion");}
 
