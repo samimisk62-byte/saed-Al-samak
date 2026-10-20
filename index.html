@@ -204,6 +204,11 @@ user-select:none;
 
 .fish.small{font-size:33px}
 .fish.big{font-size:57px}
+.fish.rare-gold,.fish.rare-diamond{filter:drop-shadow(0 0 7px #ffe66d);animation:rareFishGlow 1s ease-in-out infinite alternate}
+.fish.rare-diamond{filter:drop-shadow(0 0 9px #8df4ff)}
+@keyframes rareFishGlow{from{transform:scale(1);opacity:.88}to{transform:scale(1.16);opacity:1}}
+.rareBadge{position:absolute;top:-17px;left:50%;transform:translateX(-50%);font-size:12px;font-weight:bold;color:#fff7b0;background:#7c4a00e8;border:1px solid #ffe66d;border-radius:10px;padding:2px 6px;white-space:nowrap;pointer-events:none;z-index:31}
+.fish.rare-diamond+.rareBadge{color:#dffcff;background:#075477e8;border-color:#8df4ff}
 
 .shark{
 font-size:70px;
@@ -985,14 +990,18 @@ danger:"firecracker"
 
 }
 else{
-
-type=
-fish[
-Math.floor(
-Math.random()*fish.length
-)
-];
-
+const rareRoll=Math.random();
+if(rareRoll<Math.min(0.075+level*0.002,0.12)){
+ if(rareRoll<0.018){
+  type={emoji:"🐠",value:120,rare:"diamond",rareName:"السمكة الماسية"};
+ }else if(rareRoll<0.045){
+  type={emoji:"🐡",value:80,rare:"gold",rareName:"السمكة الذهبية"};
+ }else{
+  type={emoji:"🐟",value:50,rare:"gold",rareName:"السمكة الذهبية"};
+ }
+}else{
+ type=fish[Math.floor(Math.random()*fish.length)];
+}
 }
 
 let element=document.createElement("div");
@@ -1012,6 +1021,13 @@ element.classList.add("danger");
 else{
 
 element.classList.add("fish");
+if(type.rare){
+ element.classList.add(type.rare==="diamond"?"rare-diamond":"rare-gold");
+ const badge=document.createElement("span");
+ badge.className="rareBadge";
+ badge.textContent=type.rare==="diamond"?"💎 نادرة جدًا":"✨ ذهبية";
+ element.appendChild(badge);
+}
 
 if(Math.random()<.25){
 
@@ -1384,12 +1400,16 @@ else{
 
 score+=o.type.value;
 combo++;
-if(score>bestScore){bestScore=score;try{localStorage.setItem("saedFishBestScore",String(bestScore));}catch(e){}}
 if(combo>0&&combo%3===0){score+=5;temporaryMessage("🔥 صيد متتالي!","3 أسماك متتالية — مكافأة +5 نقاط!");}
-coins+=Math.max(1,Math.ceil(o.type.value/5));
+const coinReward=Math.max(1,Math.ceil(o.type.value/5))*(o.type.rare?3:1);
+coins+=coinReward;
+if(score>bestScore){bestScore=score;try{localStorage.setItem("saedFishBestScore",String(bestScore));}catch(e){}}
 saveFishEconomy();
 updateStoreCoins();
 
+if(o.type.rare){
+ temporaryMessage(o.type.rare==="diamond"?"💎 صيد نادر جدًا!":"✨ صيد ذهبي!",o.type.rareName+"! +"+o.type.value+" نقطة و"+coinReward+" عملة!");
+}
 catchSound();
 
 removeObject(o);
