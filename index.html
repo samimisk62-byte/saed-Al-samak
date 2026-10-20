@@ -368,30 +368,50 @@ display:block;
 margin:auto;
 }
 
-/* انفجار */
+/* مؤثرات انفجار القنبلة والمفرقعة */
 .explosion{
 position:absolute;
 z-index:800;
 font-size:85px;
 pointer-events:none;
-animation:explode .8s forwards;
+line-height:1;
+filter:drop-shadow(0 0 12px #ffcf45);
+animation:explode .8s cubic-bezier(.15,.75,.25,1) forwards;
 }
-
 @keyframes explode{
-0%{
-transform:scale(.2);
-opacity:1;
+0%{transform:scale(.15) rotate(-18deg);opacity:1}
+35%{transform:scale(1.55) rotate(12deg);opacity:1}
+70%{transform:scale(1.9) rotate(-8deg);opacity:.9}
+100%{transform:scale(2.5) rotate(18deg);opacity:0}
 }
-50%{
-transform:scale(1.4);
-opacity:1;
+.impact-flash{
+position:absolute;inset:0;z-index:790;pointer-events:none;
+background:radial-gradient(circle at var(--impact-x,50%) var(--impact-y,55%),#fff8a8 0%,#ffb02eaa 14%,#ff4a1c44 38%,transparent 70%);
+animation:impactFlash .42s ease-out forwards;
 }
-100%{
-transform:scale(2.3);
-opacity:0;
+@keyframes impactFlash{0%{opacity:1}100%{opacity:0}}
+.impact-ring{
+position:absolute;z-index:795;width:24px;height:24px;border:5px solid #fff6a1;
+border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);
+box-shadow:0 0 12px #ff8c00, inset 0 0 8px #ffdf55;
+animation:ringBurst .65s ease-out forwards;
 }
+@keyframes ringBurst{0%{width:18px;height:18px;opacity:1;border-width:6px}100%{width:190px;height:190px;opacity:0;border-width:1px}}
+.impact-particle{
+position:absolute;z-index:810;width:10px;height:10px;border-radius:50%;
+pointer-events:none;box-shadow:0 0 8px currentColor;
+animation:particleBurst .7s ease-out forwards;
 }
-
+@keyframes particleBurst{
+0%{transform:translate(0,0) scale(1.2);opacity:1}
+100%{transform:translate(var(--dx),var(--dy)) scale(.1);opacity:0}
+}
+.impact-label{
+position:absolute;z-index:820;pointer-events:none;font-size:24px;font-weight:bold;
+color:#fff;text-shadow:0 2px 5px #7b1600,0 0 12px #ffb52e;
+white-space:nowrap;animation:labelPop .9s ease-out forwards;
+}
+@keyframes labelPop{0%{transform:translate(-50%,0) scale(.5);opacity:0}20%{transform:translate(-50%,-12px) scale(1.15);opacity:1}100%{transform:translate(-50%,-65px) scale(.9);opacity:0}}
 /* اهتزاز */
 .shake{
 animation:shake .45s;
@@ -1254,26 +1274,62 @@ game.classList.remove("shake");
 },500);
 
 
-/* انفجار */
-let boom=document.createElement("div");
+/* انفجار مرئي مميز مع وميض وموجة صدمة وشرارات */
+const sea=document.getElementById("sea");
+const isFirecracker=title.includes("المفرقعة");
+const impactX=Math.max(12,Math.min(sea.clientWidth-12,hookX));
+const impactY=Math.max(30,Math.min(sea.clientHeight-30,hookY+70));
 
+const flash=document.createElement("div");
+flash.className="impact-flash";
+flash.style.setProperty("--impact-x",impactX+"px");
+flash.style.setProperty("--impact-y",impactY+"px");
+sea.appendChild(flash);
+setTimeout(()=>flash.remove(),500);
+
+const ring=document.createElement("div");
+ring.className="impact-ring";
+ring.style.left=impactX+"px";
+ring.style.top=impactY+"px";
+sea.appendChild(ring);
+setTimeout(()=>ring.remove(),750);
+
+const boom=document.createElement("div");
 boom.className="explosion";
+boom.textContent=isFirecracker?"🎆💥":"💥";
+boom.style.left=(impactX-(isFirecracker?55:40))+"px";
+boom.style.top=(impactY-42)+"px";
+sea.appendChild(boom);
+setTimeout(()=>boom.remove(),900);
 
-boom.textContent="💥";
+/* شرارات متطايرة؛ ألوان مختلفة لكل خطر */
+const particleColors=isFirecracker
+?["#fff176","#ff4d6d","#ff9f1c","#ffffff"]
+:["#ffcf33","#ff5b35","#ffffff","#ff8c00"];
+for(let i=0;i<18;i++){
+ const p=document.createElement("div");
+ p.className="impact-particle";
+ const angle=(Math.PI*2*i/18)+(Math.random()-.5)*.35;
+ const distance=45+Math.random()*95;
+ p.style.left=impactX+"px";
+ p.style.top=impactY+"px";
+ p.style.color=particleColors[i%particleColors.length];
+ p.style.background=particleColors[i%particleColors.length];
+ p.style.setProperty("--dx",(Math.cos(angle)*distance)+"px");
+ p.style.setProperty("--dy",(Math.sin(angle)*distance)+"px");
+ p.style.animationDelay=(Math.random()*.08)+"s";
+ sea.appendChild(p);
+ setTimeout(()=>p.remove(),850);
+}
 
-boom.style.left=
-(hookX-40)+"px";
-
-boom.style.top=
-(hookY+70)+"px";
-
-document.getElementById("sea").appendChild(boom);
-
-setTimeout(()=>{
-
-boom.remove();
-
-},900);
+/* عبارة قصيرة تظهر فوق الانفجار */
+const label=document.createElement("div");
+label.className="impact-label";
+label.textContent=isFirecracker?"🧨 فرقعة!":"💣 انفجار!";
+label.style.left=impactX+"px";
+label.style.top=Math.max(15,impactY-20)+"px";
+sea.appendChild(label);
+setTimeout(()=>label.remove(),950);
 
 
 /* صوت مختلف للمفرقعة وصوت انفجار للقنبلة */
