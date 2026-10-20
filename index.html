@@ -552,6 +552,14 @@ padding:10px 11px;
 🏆 الهدف:
 <b id="goal">20</b>
 </div>
+<div class="info" style="border-color:#ffd166">
+🔥 سلسلة الصيد:
+<b id="combo">0</b>
+</div>
+<div class="info" style="border-color:#8be9fd">
+🥇 أفضل نتيجة:
+<b id="bestScore">0</b>
+</div>
 
 </div>
 
@@ -765,6 +773,9 @@ let stagePage=0;
 let roundWon=false;
 let unlockedLevel=1;
 let coins=0;
+let combo=0;
+let bestScore=0;
+try{bestScore=Math.max(0,parseInt(localStorage.getItem("saedFishBestScore")||"0",10)||0);}catch(e){}
 let zoomLensOwned=false;
 let zoomLevel=1;
 try{unlockedLevel=Math.max(1,parseInt(localStorage.getItem("saedFishUnlockedLevel")||"1",10)||1);coins=Math.max(0,parseInt(localStorage.getItem("saedFishCoins")||"0",10)||0);zoomLensOwned=localStorage.getItem("saedFishZoomLens")==="yes";}catch(e){}
@@ -843,6 +854,7 @@ startWaveSound();
 selectedStage=level;
 score=0;
 throws=20;
+combo=0;
 roundWon=false;
 
 hookY=0;
@@ -874,6 +886,8 @@ function updateHUD(){
  document.getElementById("level").textContent=level;
  document.getElementById("score").textContent=score;
  document.getElementById("throws").textContent=throws;
+ const comboEl=document.getElementById("combo");if(comboEl)comboEl.textContent=combo;
+ const bestEl=document.getElementById("bestScore");if(bestEl)bestEl.textContent=bestScore;
  const goal=document.getElementById("goal");
  if(goal)goal.textContent=20+(level-1)*5;
  updateStoreCoins();
@@ -1327,6 +1341,7 @@ o.type.danger==="shark"
 if(distance<hit){
 
 o.alive=false;
+if(o.type.danger){combo=0;}
 
 if(o.type.danger==="bomb"){
 
@@ -1348,6 +1363,7 @@ dangerHit(
 
 else if(o.type.danger==="shark"){
 
+combo=0;
 score=Math.max(
 0,
 score-25
@@ -1367,6 +1383,9 @@ temporaryMessage(
 else{
 
 score+=o.type.value;
+combo++;
+if(score>bestScore){bestScore=score;try{localStorage.setItem("saedFishBestScore",String(bestScore));}catch(e){}}
+if(combo>0&&combo%3===0){score+=5;temporaryMessage("🔥 صيد متتالي!","3 أسماك متتالية — مكافأة +5 نقاط!");}
 coins+=Math.max(1,Math.ceil(o.type.value/5));
 saveFishEconomy();
 updateStoreCoins();
