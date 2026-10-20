@@ -477,7 +477,7 @@ padding:10px 11px;
 
 
 /* المتجر وعدسة الزوم */
-#gameTools{position:absolute;z-index:180;left:8px;top:72px;display:flex;flex-direction:column;gap:7px;align-items:flex-start}
+#gameTools{position:absolute;z-index:580;left:8px;top:72px;display:flex;flex-direction:column;gap:7px;align-items:flex-start}
 #gameTools button{min-height:40px;padding:8px 12px;border-radius:12px;border:2px solid #ffffff99;font-weight:bold;font-size:14px;box-shadow:0 3px 0 #002a43}
 #storeOpen{background:#ffd84d;color:#17394b}
 .zoomControls{display:none;gap:5px;align-items:center;background:#002b46d9;padding:5px;border-radius:12px;color:#fff}
@@ -605,6 +605,7 @@ padding:10px 11px;
 <div id="stageMap">
   <div class="mapHeading">🐋 رحلة صائد السمك</div>
   <div class="mapHint">اختَر مرحلة مفتوحة على جسم السمكة العملاقة</div>
+  <button type="button" onclick="openStore()" style="position:relative;z-index:590;margin:4px 0 8px;min-height:42px;padding:9px 18px;border:2px solid #fff;border-radius:13px;background:#ffd84d;color:#17394b;font-weight:bold;font-size:16px">🛒 افتح المتجر · <span id="mapCoinCount">0</span> 🪙</button>
   <div class="whaleMap">
     <div class="whaleEmoji">🐋</div>
     <div id="stageGrid" class="stageGrid"></div>
@@ -1581,8 +1582,8 @@ function saveFishEconomy(){
  try{localStorage.setItem("saedFishCoins",String(coins));localStorage.setItem("saedFishZoomLens",zoomLensOwned?"yes":"no");}catch(e){}
 }
 function updateStoreCoins(){
- const a=document.getElementById("coinCount"),b=document.getElementById("storeCoinCount");
- if(a)a.textContent=coins;if(b)b.textContent=coins;
+ const a=document.getElementById("coinCount"),b=document.getElementById("storeCoinCount"),c=document.getElementById("mapCoinCount");
+ if(a)a.textContent=coins;if(b)b.textContent=coins;if(c)c.textContent=coins;
  const buy=document.getElementById("buyZoomLens");
  if(buy)buy.textContent=zoomLensOwned?"تم الشراء ✓": "شراء";
  if(buy)buy.disabled=zoomLensOwned;
