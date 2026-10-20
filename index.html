@@ -346,21 +346,33 @@ line-height:1.8;
 /* القواعد */
 #rules{
 position:absolute;
-z-index:700;
+z-index:1200;
 inset:0;
 display:none;
 align-items:center;
 justify-content:center;
-background:#001526ee;
+background:#001526f5;
+padding:12px;
+overflow-y:auto;
+touch-action:pan-y;
 }
 
 .rulesCard{
-width:92%;
-max-width:450px;
-padding:23px;
+width:100%;
+max-width:480px;
+max-height:94%;
+overflow-y:auto;
+-webkit-overflow-scrolling:touch;
+padding:20px;
 border-radius:23px;
 background:#075477;
+border:2px solid #c9f7ff;
+color:#fff;
+box-shadow:0 0 0 3px #002d48aa;
 }
+.rulesCard h2{margin-top:0;color:#fff}
+.rulesCard p{font-size:15px;line-height:1.85;margin:10px 0 18px}
+.rulesCard .closeBtn{position:sticky;bottom:0;min-height:46px;padding:10px 24px;background:#ffda55;color:#17394b;font-weight:bold;border:2px solid #fff;border-radius:12px}
 
 .rulesCard h2{
 text-align:center;
@@ -619,6 +631,7 @@ padding:10px 11px;
 <div id="stageMap">
   <div class="mapHeading">🐋 رحلة صائد السمك</div>
   <div class="mapHint">اختَر مرحلة مفتوحة على جسم السمكة العملاقة — المراحل لا نهائية</div>
+  <button type="button" onclick="openRules()" style="position:relative;z-index:590;margin:4px 0 8px;min-height:44px;padding:9px 18px;border:2px solid #fff;border-radius:13px;background:#075477;color:#fff;font-weight:bold;font-size:16px">📖 قواعد وإرشادات اللعب</button>
   <button type="button" onclick="openStore()" style="position:relative;z-index:590;margin:4px 0 8px;min-height:42px;padding:9px 18px;border:2px solid #fff;border-radius:13px;background:#ffd84d;color:#17394b;font-weight:bold;font-size:16px">🛒 افتح المتجر · <span id="mapCoinCount">0</span> 🪙</button>
   <div class="whaleMap">
     <div class="whaleEmoji">🐋</div>
@@ -670,8 +683,8 @@ padding:10px 11px;
 
 <br>
 
-<button onclick="openRules()">
-📖 طريقة اللعب
+<button type="button" onclick="openRules()" style="min-height:48px;margin-top:10px;padding:10px 20px;border:2px solid #fff;border-radius:13px;background:#075477;color:#fff;font-weight:bold;font-size:17px">
+📖 قواعد وإرشادات اللعب
 </button>
 
 </div>
@@ -1737,17 +1750,17 @@ paused
 ========================== */
 
 function openRules(){
-
-document.getElementById("rules").style.display=
-"flex";
-
+ const panel=document.getElementById("rules");
+ if(!panel)return;
+ panel.style.display="flex";
+ panel.style.zIndex="1200";
+ const card=panel.querySelector(".rulesCard");
+ if(card)card.scrollTop=0;
 }
 
 function closeRules(){
-
-document.getElementById("rules").style.display=
-"none";
-
+ const panel=document.getElementById("rules");
+ if(panel)panel.style.display="none";
 }
 
 
