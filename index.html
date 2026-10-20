@@ -212,7 +212,12 @@ user-select:none;
 
 .shark{
 font-size:70px;
+filter:drop-shadow(0 0 5px #ff5b5b);
+transform-origin:center;
 }
+.shark-hunting{animation:sharkHunt .42s ease-in-out infinite alternate}
+.sharkBadge{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:bold;color:#fff;background:#b51f2a;border:1px solid #ffc2c2;border-radius:9px;padding:2px 5px;white-space:nowrap;pointer-events:none}
+@keyframes sharkHunt{from{filter:drop-shadow(0 0 3px #ff5b5b);scale:1}to{filter:drop-shadow(0 0 12px #ff1717);scale:1.08}}
 
 /* الفقاعات */
 .bubble{
@@ -1023,10 +1028,6 @@ else{
 element.classList.add("fish");
 if(type.rare){
  element.classList.add(type.rare==="diamond"?"rare-diamond":"rare-gold");
- const badge=document.createElement("span");
- badge.className="rareBadge";
- badge.textContent=type.rare==="diamond"?"💎 نادرة جدًا":"✨ ذهبية";
- element.appendChild(badge);
 }
 
 if(Math.random()<.25){
@@ -1044,6 +1045,19 @@ element.classList.add("big");
 }
 
 element.textContent=type.emoji;
+if(type.rare){
+ const badge=document.createElement("span");
+ badge.className="rareBadge";
+ badge.textContent=type.rare==="diamond"?"💎 نادرة جدًا":"✨ ذهبية";
+ element.appendChild(badge);
+}
+if(type.danger==="shark"){
+ element.classList.add("shark-hunting");
+ const badge=document.createElement("span");
+ badge.className="sharkBadge";
+ badge.textContent="⚠️ قرش مفترس";
+ element.appendChild(badge);
+}
 
 let obj={
 
@@ -1119,32 +1133,34 @@ objects=[];
 
 function moveObjects(){
 
-let width=window.innerWidth;
+const width=document.getElementById("sea").clientWidth;
+const height=document.getElementById("sea").clientHeight;
 
 objects.forEach(o=>{
 
 if(!o.alive)return;
 
-o.x+=o.speed;
-
-o.y+=Math.sin(
-Date.now()/700+o.x*.01
-)*.25;
-
-if(o.x<-100){
-
-o.x=width+100;
-
-}
-
-if(o.x>width+100){
-
-o.x=-100;
-
+if(o.type.danger==="shark"){
+ // القرش يلاحق الخطاف تدريجيًا، لكنه لا يقفز مباشرة إليه.
+ const dx=hookX-o.x;
+ const dy=(hookY+65)-o.y;
+ const distance=Math.sqrt(dx*dx+dy*dy)||1;
+ const chaseSpeed=Math.min(1.05+level*.09,2.6);
+ o.x+=(dx/distance)*chaseSpeed;
+ o.y+=(dy/distance)*chaseSpeed*.72;
+ o.y+=Math.sin(Date.now()/230+o.x*.025)*.55;
+ // عندما يقترب من طرف الشاشة، يبقى داخل منطقة البحر.
+ o.x=Math.max(12,Math.min(width-45,o.x));
+ o.y=Math.max(25,Math.min(height-55,o.y));
+ o.element.style.transform=dx<0?"scaleX(-1)":"scaleX(1)";
+}else{
+ o.x+=o.speed;
+ o.y+=Math.sin(Date.now()/700+o.x*.01)*.25;
+ if(o.x<-100)o.x=width+100;
+ if(o.x>width+100)o.x=-100;
 }
 
 o.element.style.left=o.x+"px";
-
 o.element.style.top=o.y+"px";
 
 });
