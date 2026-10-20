@@ -451,6 +451,30 @@ padding:10px 11px;
 }
 
 }
+
+/* خريطة المراحل على جسم السمكة العملاقة */
+#stageMap{position:absolute;z-index:550;inset:0;display:flex;flex-direction:column;align-items:center;overflow:auto;padding:12px 10px 18px;background:linear-gradient(180deg,#052b49,#087da0 62%,#063a58);touch-action:pan-y}
+.mapHeading{font-size:clamp(22px,5vw,32px);font-weight:bold;text-align:center;margin:2px 0 4px;color:#fff}
+.mapHint{font-size:14px;text-align:center;color:#d7f7ff;margin-bottom:5px}
+.whaleMap{position:relative;width:min(100%,520px);min-height:390px;padding:18px 12px 16px;border-radius:48% 48% 42% 42%;background:radial-gradient(ellipse at 50% 35%,#58d6e7 0%,#1599bb 45%,#075b83 78%);border:4px solid #b8f8ff;box-shadow:inset 0 -20px 0 #03496c,0 10px 24px #001b2c88}
+.whaleEmoji{font-size:72px;text-align:center;line-height:1.05;filter:drop-shadow(0 5px 3px #00334b77)}
+.stageGrid{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;padding:8px 4px 12px;max-width:410px;margin:auto}
+.stageNode{min-height:43px;border:2px solid #d7fbff;border-radius:50%;background:#0c6d7b;color:#fff;font-size:16px;font-weight:bold;padding:7px 2px;box-shadow:0 3px 0 #03465b}
+.stageNode.open{background:#f7d94c;color:#163b4b;border-color:#fff4a3}
+.stageNode.locked{opacity:.5;background:#314c5a}
+.mapControls{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin:9px 0}
+.mapControls button,.stageActions button,.stageClose{min-height:42px;border:0;border-radius:13px;padding:9px 17px;font-weight:bold;font-size:15px}
+#stageDialog{position:absolute;z-index:3;inset:0;display:none;align-items:center;justify-content:center;background:#001827dd;padding:18px}
+.stagePanel{width:min(100%,360px);padding:22px 18px;text-align:center;border-radius:22px;background:linear-gradient(145deg,#0a7590,#06415f);border:2px solid #c5f8ff;box-shadow:0 12px 38px #00131fcc}
+.stageClose{position:absolute;top:22px;right:22px;width:44px;padding:0;font-size:27px;background:#d64b54;color:white}
+.stagePanel h2{font-size:27px;margin:10px 0}
+.stagePanel p{line-height:1.8}
+.stageActions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.stageActions button{background:#f4d64b;color:#173b4a}
+.stageActions .secondary{background:#d9f7ff}
+#messageMapButton{background:#2e7891;margin-right:6px}
+@media(max-width:380px){.whaleMap{min-height:350px;padding:10px 6px}.stageGrid{gap:6px}.stageNode{min-height:38px;font-size:14px}.whaleEmoji{font-size:60px}}
+
 </style>
 </head>
 
@@ -482,7 +506,7 @@ padding:10px 11px;
 
 <div class="info">
 🏆 الهدف:
-<b>20</b>
+<b id="goal">20</b>
 </div>
 
 </div>
@@ -524,6 +548,37 @@ padding:10px 11px;
 📖 القواعد
 </button>
 
+</div>
+
+
+<!-- خريطة المراحل -->
+<div id="stageMap">
+  <div class="mapHeading">🐋 رحلة صائد السمك</div>
+  <div class="mapHint">اختَر مرحلة مفتوحة على جسم السمكة العملاقة</div>
+  <div class="whaleMap">
+    <div class="whaleEmoji">🐋</div>
+    <div id="stageGrid" class="stageGrid"></div>
+    <div class="whaleEmoji" style="font-size:34px">🌊 🐠 🌊</div>
+  </div>
+  <div class="mapControls">
+    <button id="prevStages" type="button" onclick="changeStagePage(-1)">◀ السابق</button>
+    <b id="pageLabel">المراحل 1 - 12</b>
+    <button id="nextStages" type="button" onclick="changeStagePage(1)">التالي ▶</button>
+  </div>
+  <div class="mapHint">افز في المرحلة لفتح المرحلة التالية. المراحل تتواصل بلا نهاية.</div>
+  <div id="stageDialog">
+    <button class="stageClose" type="button" onclick="closeStageDialog()" aria-label="إغلاق">×</button>
+    <div class="stagePanel">
+      <div style="font-size:48px">🎣 🐟</div>
+      <h2 id="selectedStageTitle">المرحلة 1</h2>
+      <p id="selectedStageInfo">اصطد الأسماك واجمع النقاط لتفوز.</p>
+      <div class="stageActions">
+        <button type="button" onclick="openSelectedStage()">OPEN — افتح</button>
+        <button id="stageNextButton" class="secondary" type="button" onclick="goToNextStage()">NEXT — التالي</button>
+        <button class="secondary" type="button" onclick="closeStageDialog()">رجوع</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- البداية -->
@@ -568,6 +623,8 @@ padding:10px 11px;
 <div id="messageText" class="messageText"></div>
 
 <br>
+
+<button id="messageMapButton" type="button" onclick="showStageMap()">× خريطة المراحل</button>
 
 <button
 id="messageButton"
@@ -623,6 +680,11 @@ let throwing=false;
 let level=1;
 let score=0;
 let throws=20;
+let selectedStage=1;
+let stagePage=0;
+let roundWon=false;
+let unlockedLevel=1;
+try{unlockedLevel=Math.max(1,parseInt(localStorage.getItem("saedFishUnlockedLevel")||"1",10)||1);}catch(e){}
 
 let hookX=window.innerWidth/2;
 let hookY=0;
@@ -684,21 +746,19 @@ value:6
    تشغيل اللعبة
 ========================== */
 
-function startGame(){
+function startGame(stageNumber=selectedStage){
 
 document.getElementById("startScreen").style.display="none";
-
+document.getElementById("stageMap").style.display="none";
 document.getElementById("message").style.display="none";
 
 gameRunning=true;
-
 paused=false;
-
-level=1;
-
+level=Math.max(1,Number(stageNumber)||1);
+selectedStage=level;
 score=0;
-
 throws=20;
+roundWon=false;
 
 hookY=0;
 
@@ -732,6 +792,8 @@ document.getElementById("level").textContent=level;
 document.getElementById("score").textContent=score;
 
 document.getElementById("throws").textContent=throws;
+const goal=document.getElementById("goal");
+if(goal)goal.textContent=20+(level-1)*5;
 
 }
 
@@ -1362,21 +1424,25 @@ title,
 function endRound(){
 
 gameRunning=false;
+const goal=20+(level-1)*5;
+roundWon=score>=goal;
 
-if(level<999999){
-
-level++;
-
-showMessage(
-"🎉 أحسنت!",
-"أكملت 20 رمية بنجاح!<br><br>"+
-"🚀 المرحلة الجديدة: "+level+
-"<br>🔥 السرعة والأخطار أصبحت أصعب.",
-"🚀 المرحلة التالية"
-);
-
+if(roundWon){
+  unlockedLevel=Math.max(unlockedLevel,level+1);
+  try{localStorage.setItem("saedFishUnlockedLevel",String(unlockedLevel));}catch(e){}
+  showMessage(
+    "🏆 فزت بالمرحلة "+level+"!",
+    "جمعت "+score+" نقطة من الهدف "+goal+".<br><br>🎁 فُتحت لك المرحلة التالية: "+(level+1)+"<br>🐟 ستظهر تحديات وأسماك أصعب.",
+    "NEXT — المرحلة التالية"
+  );
+}else{
+  showMessage(
+    "💪 حاول مرة أخرى",
+    "انتهت الرميات ولم تصل إلى الهدف بعد.<br><br>نقاطك: "+score+" / الهدف: "+goal+"<br>يمكنك إعادة المرحلة أو الرجوع إلى خريطة السمكة.",
+    "🔄 إعادة المرحلة"
+  );
 }
-
+renderStageMap();
 }
 
 
@@ -1406,24 +1472,65 @@ document.getElementById("message").style.display=
 ========================== */
 
 function messageAction(){
+  document.getElementById("message").style.display="none";
+  if(roundWon){
+    startGame(level+1);
+  }else{
+    startGame(level);
+  }
+}
 
-document.getElementById("message").style.display=
-"none";
-
-throws=20;
-
-hookY=0;
-
-updateHUD();
-
-gameRunning=true;
-
-paused=false;
-
-createSeaObjects();
-
-gameLoop();
-
+function renderStageMap(){
+  const grid=document.getElementById("stageGrid");
+  if(!grid)return;
+  grid.innerHTML="";
+  const first=stagePage*12+1;
+  for(let n=first;n<first+12;n++){
+    const b=document.createElement("button");
+    b.type="button";
+    b.className="stageNode "+(n<=unlockedLevel?"open":"locked");
+    b.textContent=n<=unlockedLevel?String(n):"🔒 "+n;
+    b.disabled=n>unlockedLevel;
+    b.setAttribute("aria-label",n<=unlockedLevel?"افتح المرحلة "+n:"المرحلة "+n+" مقفولة");
+    b.addEventListener("click",()=>selectStage(n));
+    grid.appendChild(b);
+  }
+  document.getElementById("pageLabel").textContent="المراحل "+first+" - "+(first+11);
+  document.getElementById("prevStages").disabled=stagePage===0;
+  document.getElementById("nextStages").disabled=first+12>unlockedLevel;
+}
+function changeStagePage(direction){
+  const next=stagePage+direction;
+  if(next<0||next*12+1>unlockedLevel)return;
+  stagePage=next;
+  renderStageMap();
+}
+function selectStage(n){
+  if(n>unlockedLevel)return;
+  selectedStage=n;
+  document.getElementById("selectedStageTitle").textContent="المرحلة "+n;
+  document.getElementById("selectedStageInfo").innerHTML="الهدف: "+(20+(n-1)*5)+" نقطة.<br>للفوز، اجمع الهدف خلال 20 رمية.";
+  document.getElementById("stageNextButton").style.display=(n<unlockedLevel)?"inline-block":"none";
+  document.getElementById("stageDialog").style.display="flex";
+}
+function openSelectedStage(){
+  document.getElementById("stageDialog").style.display="none";
+  startGame(selectedStage);
+}
+function goToNextStage(){
+  if(selectedStage<unlockedLevel)selectStage(selectedStage+1);
+}
+function closeStageDialog(){
+  document.getElementById("stageDialog").style.display="none";
+}
+function showStageMap(){
+  gameRunning=false;
+  paused=false;
+  document.getElementById("message").style.display="none";
+  document.getElementById("startScreen").style.display="none";
+  document.getElementById("stageMap").style.display="flex";
+  document.getElementById("stageDialog").style.display="none";
+  renderStageMap();
 }
 
 
@@ -1701,6 +1808,9 @@ castHook();
 ========================== */
 
 updateHook();
+document.getElementById("startScreen").style.display="none";
+document.getElementById("stageMap").style.display="flex";
+renderStageMap();
 
 </script>
 
