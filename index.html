@@ -483,6 +483,7 @@ padding:10px 11px;
 #gameTools button{min-height:40px;padding:8px 12px;border-radius:12px;border:2px solid #ffffff99;font-weight:bold;font-size:14px;box-shadow:0 3px 0 #002a43}
 #storeOpen{background:#ffd84d;color:#17394b}
 .zoomControls{display:none;gap:5px;align-items:center;background:#002b46d9;padding:5px;border-radius:12px;color:#fff}
+#gameTools .zoomControls{display:flex}
 .zoomControls button{min-width:40px;background:#d9f8ff;color:#103c52}
 #zoomReadout{font-size:12px;min-width:42px;text-align:center}
 #storeModal{position:absolute;z-index:850;inset:0;display:none;align-items:center;justify-content:center;padding:16px;background:#001626df;touch-action:pan-y}
@@ -591,7 +592,7 @@ padding:10px 11px;
     <div class="storeCoins">رصيدك: <b id="storeCoinCount">0</b> 🪙</div>
     <div class="storeItem">
       <div class="storeIcon">🔍</div>
-      <div class="storeItemInfo"><b>عدسة الزوم</b><br>تكبير وتصغير الأسماك أثناء اللعب.<br><b>50 🪙</b></div>
+      <div class="storeItemInfo"><b>عدسة الزوم الإضافية</b><br>تقدر تستخدم أزرار التكبير والتصغير أثناء اللعب مجانًا؛ العدسة الإضافية لتحسين تأثير التكبير على الأسماك.<br><b>50 🪙</b></div>
       <button id="buyZoomLens" type="button" onclick="buyZoomLens()">شراء</button>
     </div>
     <div class="storeItem">
@@ -606,7 +607,7 @@ padding:10px 11px;
 <!-- خريطة المراحل -->
 <div id="stageMap">
   <div class="mapHeading">🐋 رحلة صائد السمك</div>
-  <div class="mapHint">اختَر مرحلة مفتوحة على جسم السمكة العملاقة</div>
+  <div class="mapHint">اختَر مرحلة مفتوحة على جسم السمكة العملاقة — المراحل لا نهائية</div>
   <button type="button" onclick="openStore()" style="position:relative;z-index:590;margin:4px 0 8px;min-height:42px;padding:9px 18px;border:2px solid #fff;border-radius:13px;background:#ffd84d;color:#17394b;font-weight:bold;font-size:16px">🛒 افتح المتجر · <span id="mapCoinCount">0</span> 🪙</button>
   <div class="whaleMap">
     <div class="whaleEmoji">🐋</div>
@@ -1553,11 +1554,11 @@ function renderStageMap(){
   }
   document.getElementById("pageLabel").textContent="المراحل "+first+" - "+(first+11);
   document.getElementById("prevStages").disabled=stagePage===0;
-  document.getElementById("nextStages").disabled=first+12>unlockedLevel;
+  document.getElementById("nextStages").disabled=false;
 }
 function changeStagePage(direction){
   const next=stagePage+direction;
-  if(next<0||next*12+1>unlockedLevel)return;
+  if(next<0)return;
   stagePage=next;
   renderStageMap();
 }
@@ -1590,7 +1591,7 @@ function updateStoreCoins(){
  if(buy)buy.textContent=zoomLensOwned?"تم الشراء ✓": "شراء";
  if(buy)buy.disabled=zoomLensOwned;
  const zoom=document.getElementById("zoomControls");
- if(zoom)zoom.style.display=(zoomLensOwned&&gameRunning)?"flex":"none";
+ if(zoom)zoom.style.display=gameRunning?"flex":"none";
 }
 function openStore(){
  updateStoreCoins();
@@ -1608,12 +1609,11 @@ function buyBait(){
 }
 function getScenePointerX(clientX){
  const sea=document.getElementById("sea");
- if(!sea||!zoomLensOwned||zoomLevel===1)return clientX;
+ if(!sea||zoomLevel===1)return clientX;
  const rect=sea.getBoundingClientRect();
  return (clientX-rect.left)/zoomLevel;
 }
 function changeZoom(amount){
- if(!zoomLensOwned){openStore();return;}
  zoomLevel=Math.max(0.7,Math.min(1.9,Math.round((zoomLevel+amount)*100)/100));
  applyZoom();
 }
