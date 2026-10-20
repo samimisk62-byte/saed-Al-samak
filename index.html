@@ -756,8 +756,8 @@ function createSeaObjects(){
 clearObjects();
 
 let count=Math.min(
-12+(level*2),
-30
+28+(level*3),
+60
 );
 
 for(let i=0;i<count;i++){
@@ -767,13 +767,13 @@ let type;
 let random=Math.random();
 
 let dangerChance=Math.min(
-0.08+(level*0.025),
-0.25
+0.05+(level*0.015),
+0.18
 );
 
 let sharkChance=Math.min(
-0.04+(level*0.01),
-0.12
+0.025+(level*0.006),
+0.08
 );
 
 if(random<sharkChance){
@@ -1202,6 +1202,8 @@ else{
 
 score+=o.type.value;
 
+catchSound();
+
 removeObject(o);
 
 updateHUD();
@@ -1274,8 +1276,12 @@ boom.remove();
 },900);
 
 
-/* صوت انفجار قوي بدون ملفات خارجية */
+/* صوت مختلف للمفرقعة وصوت انفجار للقنبلة */
+if(title.includes("المفرقعة")){
+firecrackerSound();
+}else{
 explosionSound();
+}
 
 
 setTimeout(()=>{
@@ -1455,72 +1461,48 @@ document.getElementById("rules").style.display=
    صوت الانفجار
 ========================== */
 
-function explosionSound(){
-
+function playGameTone(type){
 try{
-
-let AudioContext=
-window.AudioContext||
-window.webkitAudioContext;
-
-let ctx=new AudioContext();
-
-let oscillator=
-ctx.createOscillator();
-
-let gain=
-ctx.createGain();
-
-oscillator.type="sawtooth";
-
-oscillator.frequency.setValueAtTime(
-150,
-ctx.currentTime
-);
-
-oscillator.frequency.exponentialRampToValueAtTime(
-35,
-ctx.currentTime+.8
-);
-
-gain.gain.setValueAtTime(
-.5,
-ctx.currentTime
-);
-
-gain.gain.exponentialRampToValueAtTime(
-.001,
-ctx.currentTime+.8
-);
-
-oscillator.connect(gain);
-
+const AudioCtx=window.AudioContext||window.webkitAudioContext;
+if(!AudioCtx)return;
+const ctx=new AudioCtx();
+const now=ctx.currentTime;
+const osc=ctx.createOscillator();
+const gain=ctx.createGain();
+osc.connect(gain);
 gain.connect(ctx.destination);
-
-oscillator.start();
-
-oscillator.stop(
-ctx.currentTime+.8
-);
-
+if(type==="catch"){
+osc.type="sine";
+osc.frequency.setValueAtTime(720,now);
+osc.frequency.exponentialRampToValueAtTime(1120,now+0.12);
+gain.gain.setValueAtTime(0.0001,now);
+gain.gain.exponentialRampToValueAtTime(0.22,now+0.02);
+gain.gain.exponentialRampToValueAtTime(0.0001,now+0.24);
+osc.start(now);osc.stop(now+0.25);
+}else if(type==="firecracker"){
+osc.type="square";
+osc.frequency.setValueAtTime(850,now);
+osc.frequency.exponentialRampToValueAtTime(120,now+0.32);
+gain.gain.setValueAtTime(0.0001,now);
+gain.gain.exponentialRampToValueAtTime(0.32,now+0.015);
+gain.gain.exponentialRampToValueAtTime(0.0001,now+0.36);
+osc.start(now);osc.stop(now+0.37);
+}else{
+osc.type="sawtooth";
+osc.frequency.setValueAtTime(150,now);
+osc.frequency.exponentialRampToValueAtTime(35,now+0.8);
+gain.gain.setValueAtTime(0.0001,now);
+gain.gain.exponentialRampToValueAtTime(0.5,now+0.02);
+gain.gain.exponentialRampToValueAtTime(0.0001,now+0.8);
+osc.start(now);osc.stop(now+0.81);
+}
+osc.onended=()=>{ctx.close().catch(()=>{});};
+if(ctx.state==="suspended")ctx.resume().catch(()=>{});
 }catch(e){}
-
-if(navigator.vibrate){
-
-navigator.vibrate(
-[
-300,
-100,
-400,
-100,
-500
-]
-);
-
 }
-
-}
-
+function catchSound(){playGameTone("catch");}
+function firecrackerSound(){playGameTone("firecracker");}
+function explosionSound(){playGameTone("explosion");}
 
 /* ==========================
    حلقة اللعبة
