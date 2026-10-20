@@ -1133,29 +1133,60 @@ objects=[];
 
 function moveObjects(){
 
-const width=document.getElementById("sea").clientWidth;
-const height=document.getElementById("sea").clientHeight;
+const sea=document.getElementById("sea");
+const width=sea.clientWidth;
+const height=sea.clientHeight;
+const now=Date.now();
+const sharks=objects.filter(o=>o.alive&&o.type.danger==="shark");
 
 objects.forEach(o=>{
 
 if(!o.alive)return;
 
 if(o.type.danger==="shark"){
- // القرش يلاحق الخطاف تدريجيًا، لكنه لا يقفز مباشرة إليه.
+ // مطاردة عادية، مع هجمة اندفاع مفاجئة إذا اقترب الخطاف.
  const dx=hookX-o.x;
  const dy=(hookY+65)-o.y;
  const distance=Math.sqrt(dx*dx+dy*dy)||1;
- const chaseSpeed=Math.min(1.05+level*.09,2.6);
+ if(o.nextDashAt===undefined)o.nextDashAt=now+1800+Math.random()*1800;
+ if(o.dashUntil===undefined)o.dashUntil=0;
+ const attackRange=230+Math.min(level*4,100);
+ if(distance<attackRange&&now>=o.nextDashAt){
+  o.dashUntil=now+520;
+  o.nextDashAt=now+Math.max(2200,4300-level*90);
+  if(o.element.dataset){o.element.dataset.attacking="yes";}
+  const badge=o.element.querySelector(".sharkBadge");
+  if(badge)badge.textContent="⚡ هجوم!";
+ }
+ const dashing=now<o.dashUntil;
+ const chaseSpeed=dashing?Math.min(3.1+level*.12,5.2):Math.min(1.05+level*.09,2.6);
  o.x+=(dx/distance)*chaseSpeed;
- o.y+=(dy/distance)*chaseSpeed*.72;
- o.y+=Math.sin(Date.now()/230+o.x*.025)*.55;
- // عندما يقترب من طرف الشاشة، يبقى داخل منطقة البحر.
+ o.y+=(dy/distance)*chaseSpeed*(dashing?.9:.72);
+ o.y+=Math.sin(now/230+o.x*.025)*.55;
  o.x=Math.max(12,Math.min(width-45,o.x));
  o.y=Math.max(25,Math.min(height-55,o.y));
  o.element.style.transform=dx<0?"scaleX(-1)":"scaleX(1)";
+ o.element.style.filter=dashing?"drop-shadow(0 0 15px #ff1717)":"";
+ if(!dashing&&o.element.dataset.attacking==="yes"){
+  delete o.element.dataset.attacking;
+  const badge=o.element.querySelector(".sharkBadge");
+  if(badge)badge.textContent="⚠️ قرش مفترس";
+ }
 }else{
- o.x+=o.speed;
- o.y+=Math.sin(Date.now()/700+o.x*.01)*.25;
+ // الأسماك العادية تسرع وتهرب عندما يقترب منها قرش.
+ let fleeing=false;
+ for(const shark of sharks){
+  const sx=o.x-shark.x,sy=o.y-shark.y;
+  const dist=Math.sqrt(sx*sx+sy*sy);
+  if(dist<155&&dist>0){
+   fleeing=true;
+   const boost=Math.min(1.25+level*.04,2.1);
+   o.x+=(sx/dist)*boost;
+   o.y+=(sy/dist)*boost*.65;
+  }
+ }
+ o.x+=o.speed*(fleeing?1.7:1);
+ o.y+=Math.sin(now/700+o.x*.01)*.25;
  if(o.x<-100)o.x=width+100;
  if(o.x>width+100)o.x=-100;
 }
