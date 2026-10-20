@@ -547,6 +547,10 @@ padding:10px 11px;
 🎯 المرحلة:
 <b id="level">1</b>
 </div>
+<div class="info" id="lifeInfo" style="border-color:#ff758f">
+❤️ الطاقة:
+<b id="sharkLives">❤️❤️❤️</b>
+</div>
 
 <div class="info">
 🐟 النقاط:
@@ -774,6 +778,8 @@ onclick="messageAction()">
 let gameRunning=false;
 let paused=false;
 let throwing=false;
+let sharkLives=3;
+let sharkShieldUntil=0;
 
 let level=1;
 let score=0;
@@ -865,6 +871,8 @@ selectedStage=level;
 score=0;
 throws=20;
 combo=0;
+sharkLives=3;
+sharkShieldUntil=0;
 roundWon=false;
 
 hookY=0;
@@ -896,6 +904,8 @@ function updateHUD(){
  document.getElementById("level").textContent=level;
  document.getElementById("score").textContent=score;
  document.getElementById("throws").textContent=throws;
+ const livesEl=document.getElementById("sharkLives");
+ if(livesEl)livesEl.textContent="❤️".repeat(Math.max(0,sharkLives))+"🖤".repeat(Math.max(0,3-sharkLives));
  const comboEl=document.getElementById("combo");if(comboEl)comboEl.textContent=combo;
  const bestEl=document.getElementById("bestScore");if(bestEl)bestEl.textContent=bestScore;
  const goal=document.getElementById("goal");
@@ -1426,20 +1436,30 @@ dangerHit(
 
 else if(o.type.danger==="shark"){
 
+// فترة حماية قصيرة تمنع القرش من خصم الطاقة عدة مرات متتالية.
+const now=Date.now();
+if(now<sharkShieldUntil){
+ o.alive=false;
+ removeObject(o);
+ return;
+}
+sharkShieldUntil=now+1800;
+sharkLives=Math.max(0,sharkLives-1);
 combo=0;
-score=Math.max(
-0,
-score-25
-);
-
+score=Math.max(0,score-25);
 removeObject(o);
-
 updateHUD();
 
-temporaryMessage(
-"🦈 القرش!",
-"خسرت 25 نقطة"
-);
+if(sharkLives<=0){
+ gameRunning=false;
+ stopWaveSound();
+ throwing=false;
+ clearObjects();
+ showMessage("🦈 انتهت الطاقة!","القرش أصابك ثلاث مرات. خسرت 25 نقطة عند كل إصابة، ويمكنك إعادة المرحلة والمحاولة من جديد.<br><br>نقاطك: "+score,"🔄 إعادة المرحلة");
+ renderStageMap();
+}else{
+ temporaryMessage("🦈 القرش هاجمك!","خسرت 25 نقطة ❤️ الطاقة المتبقية: "+sharkLives+" — لديك حماية قصيرة!");
+}
 
 }
 
