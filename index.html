@@ -475,6 +475,28 @@ padding:10px 11px;
 #messageMapButton{background:#2e7891;margin-right:6px}
 @media(max-width:380px){.whaleMap{min-height:350px;padding:10px 6px}.stageGrid{gap:6px}.stageNode{min-height:38px;font-size:14px}.whaleEmoji{font-size:60px}}
 
+
+/* المتجر وعدسة الزوم */
+#gameTools{position:absolute;z-index:180;left:8px;top:72px;display:flex;flex-direction:column;gap:7px;align-items:flex-start}
+#gameTools button{min-height:40px;padding:8px 12px;border-radius:12px;border:2px solid #ffffff99;font-weight:bold;font-size:14px;box-shadow:0 3px 0 #002a43}
+#storeOpen{background:#ffd84d;color:#17394b}
+.zoomControls{display:none;gap:5px;align-items:center;background:#002b46d9;padding:5px;border-radius:12px;color:#fff}
+.zoomControls button{min-width:40px;background:#d9f8ff;color:#103c52}
+#zoomReadout{font-size:12px;min-width:42px;text-align:center}
+#storeModal{position:absolute;z-index:850;inset:0;display:none;align-items:center;justify-content:center;padding:16px;background:#001626df;touch-action:pan-y}
+.storeCard{width:min(100%,390px);max-height:88%;overflow:auto;padding:20px;border-radius:22px;background:linear-gradient(145deg,#087c9b,#06435f);border:2px solid #d1fbff;color:white;text-align:center}
+.storeCard h2{font-size:28px;margin:0 0 8px}
+.storeCoins{font-size:18px;background:#00344d;padding:10px;border-radius:12px;margin:10px 0}
+.storeItem{display:flex;gap:10px;align-items:center;text-align:right;background:#ffffff16;border:1px solid #ffffff44;border-radius:14px;padding:12px;margin:10px 0}
+.storeIcon{font-size:34px}
+.storeItemInfo{flex:1;min-width:0;line-height:1.6}
+.storeItem button,.storeClose{min-height:42px;padding:9px 13px;border:0;border-radius:11px;font-weight:bold;background:#ffdb4c;color:#17394b}
+.storeClose{background:#d9f7ff;margin-top:8px}
+#game.zoomed .item{font-size:calc(32px * var(--fish-zoom,1));}
+#game.zoomed .item.small{font-size:calc(24px * var(--fish-zoom,1));}
+#game.zoomed .item.big{font-size:calc(44px * var(--fish-zoom,1));}
+@media(max-width:380px){#gameTools{top:96px;left:5px}#gameTools button{font-size:12px;padding:7px 9px}.storeCard{padding:15px}}
+
 </style>
 </head>
 
@@ -550,6 +572,34 @@ padding:10px 11px;
 
 </div>
 
+<div id="gameTools">
+  <button id="storeOpen" type="button" onclick="openStore()">🛒 المتجر · <span id="coinCount">0</span> 🪙</button>
+  <div id="zoomControls" class="zoomControls" aria-label="أدوات التكبير والتصغير">
+    <button type="button" onclick="changeZoom(0.15)" aria-label="تكبير">🔍＋</button>
+    <span id="zoomReadout">100%</span>
+    <button type="button" onclick="changeZoom(-0.15)" aria-label="تصغير">🔍－</button>
+    <button type="button" onclick="resetZoom()" aria-label="إعادة الزوم">↺</button>
+  </div>
+</div>
+
+<div id="storeModal" role="dialog" aria-modal="true" aria-label="متجر أدوات الصيد">
+  <div class="storeCard">
+    <h2>🛒 متجر صائد السمك</h2>
+    <p>اجمع العملات من صيد الأسماك واشترِ أدوات تساعدك.</p>
+    <div class="storeCoins">رصيدك: <b id="storeCoinCount">0</b> 🪙</div>
+    <div class="storeItem">
+      <div class="storeIcon">🔍</div>
+      <div class="storeItemInfo"><b>عدسة الزوم</b><br>تكبير وتصغير الأسماك أثناء اللعب.<br><b>50 🪙</b></div>
+      <button id="buyZoomLens" type="button" onclick="buyZoomLens()">شراء</button>
+    </div>
+    <div class="storeItem">
+      <div class="storeIcon">🪱</div>
+      <div class="storeItemInfo"><b>طُعم الصياد</b><br>تمنحك 10 نقاط إضافية فور الشراء.<br><b>30 🪙</b></div>
+      <button id="buyBait" type="button" onclick="buyBait()">شراء</button>
+    </div>
+    <button class="storeClose" type="button" onclick="closeStore()">إغلاق المتجر</button>
+  </div>
+</div>
 
 <!-- خريطة المراحل -->
 <div id="stageMap">
@@ -684,7 +734,10 @@ let selectedStage=1;
 let stagePage=0;
 let roundWon=false;
 let unlockedLevel=1;
-try{unlockedLevel=Math.max(1,parseInt(localStorage.getItem("saedFishUnlockedLevel")||"1",10)||1);}catch(e){}
+let coins=0;
+let zoomLensOwned=false;
+let zoomLevel=1;
+try{unlockedLevel=Math.max(1,parseInt(localStorage.getItem("saedFishUnlockedLevel")||"1",10)||1);coins=Math.max(0,parseInt(localStorage.getItem("saedFishCoins")||"0",10)||0);zoomLensOwned=localStorage.getItem("saedFishZoomLens")==="yes";}catch(e){}
 
 let hookX=window.innerWidth/2;
 let hookY=0;
@@ -786,15 +839,12 @@ gameLoop();
 ========================== */
 
 function updateHUD(){
-
-document.getElementById("level").textContent=level;
-
-document.getElementById("score").textContent=score;
-
-document.getElementById("throws").textContent=throws;
-const goal=document.getElementById("goal");
-if(goal)goal.textContent=20+(level-1)*5;
-
+ document.getElementById("level").textContent=level;
+ document.getElementById("score").textContent=score;
+ document.getElementById("throws").textContent=throws;
+ const goal=document.getElementById("goal");
+ if(goal)goal.textContent=20+(level-1)*5;
+ updateStoreCoins();
 }
 
 
@@ -1283,6 +1333,9 @@ temporaryMessage(
 else{
 
 score+=o.type.value;
+coins+=Math.max(1,Math.ceil(o.type.value/5));
+saveFishEconomy();
+updateStoreCoins();
 
 catchSound();
 
@@ -1523,6 +1576,52 @@ function goToNextStage(){
 function closeStageDialog(){
   document.getElementById("stageDialog").style.display="none";
 }
+
+function saveFishEconomy(){
+ try{localStorage.setItem("saedFishCoins",String(coins));localStorage.setItem("saedFishZoomLens",zoomLensOwned?"yes":"no");}catch(e){}
+}
+function updateStoreCoins(){
+ const a=document.getElementById("coinCount"),b=document.getElementById("storeCoinCount");
+ if(a)a.textContent=coins;if(b)b.textContent=coins;
+ const buy=document.getElementById("buyZoomLens");
+ if(buy)buy.textContent=zoomLensOwned?"تم الشراء ✓": "شراء";
+ if(buy)buy.disabled=zoomLensOwned;
+ const zoom=document.getElementById("zoomControls");
+ if(zoom)zoom.style.display=(zoomLensOwned&&gameRunning)?"flex":"none";
+}
+function openStore(){
+ updateStoreCoins();
+ document.getElementById("storeModal").style.display="flex";
+}
+function closeStore(){document.getElementById("storeModal").style.display="none";}
+function buyZoomLens(){
+ if(zoomLensOwned){updateStoreCoins();return;}
+ if(coins<50){alert("العملات غير كافية. اصطد المزيد من الأسماك لجمع العملات.");return;}
+ coins-=50;zoomLensOwned=true;zoomLevel=1;saveFishEconomy();updateStoreCoins();applyZoom(); 
+}
+function buyBait(){
+ if(coins<30){alert("العملات غير كافية. اصطد المزيد من الأسماك لجمع العملات.");return;}
+ coins-=30;score+=10;saveFishEconomy();updateHUD();updateStoreCoins();alert("تم شراء الطُعم! أضفنا 10 نقاط إلى رصيدك.");
+}
+function changeZoom(amount){
+ if(!zoomLensOwned){openStore();return;}
+ zoomLevel=Math.max(0.7,Math.min(1.9,Math.round((zoomLevel+amount)*100)/100));
+ applyZoom();
+}
+function resetZoom(){zoomLevel=1;applyZoom();}
+function applyZoom(){
+ const game=document.getElementById("game");
+ game.style.setProperty("--fish-zoom",String(zoomLevel));
+ game.classList.toggle("zoomed",zoomLevel!==1);
+ document.querySelectorAll("#sea .item").forEach(el=>{
+   el.style.fontSize=(32*zoomLevel)+"px";
+   if(el.classList.contains("small"))el.style.fontSize=(24*zoomLevel)+"px";
+   if(el.classList.contains("big"))el.style.fontSize=(44*zoomLevel)+"px";
+ });
+ const readout=document.getElementById("zoomReadout");
+ if(readout)readout.textContent=Math.round(zoomLevel*100)+"%";
+}
+
 function showStageMap(){
   gameRunning=false;
   paused=false;
@@ -1811,6 +1910,8 @@ updateHook();
 document.getElementById("startScreen").style.display="none";
 document.getElementById("stageMap").style.display="flex";
 renderStageMap();
+updateStoreCoins();
+applyZoom();
 
 </script>
 
