@@ -118,6 +118,8 @@ right:0;
 top:17%;
 bottom:0;
 overflow:hidden;
+transform:scale(var(--scene-zoom,1));
+transform-origin:50% 50%;
 }
 
 /* القارب */
@@ -1604,6 +1606,12 @@ function buyBait(){
  if(coins<30){alert("العملات غير كافية. اصطد المزيد من الأسماك لجمع العملات.");return;}
  coins-=30;score+=10;saveFishEconomy();updateHUD();updateStoreCoins();alert("تم شراء الطُعم! أضفنا 10 نقاط إلى رصيدك.");
 }
+function getScenePointerX(clientX){
+ const sea=document.getElementById("sea");
+ if(!sea||!zoomLensOwned||zoomLevel===1)return clientX;
+ const rect=sea.getBoundingClientRect();
+ return (clientX-rect.left)/zoomLevel;
+}
 function changeZoom(amount){
  if(!zoomLensOwned){openStore();return;}
  zoomLevel=Math.max(0.7,Math.min(1.9,Math.round((zoomLevel+amount)*100)/100));
@@ -1612,8 +1620,10 @@ function changeZoom(amount){
 function resetZoom(){zoomLevel=1;applyZoom();}
 function applyZoom(){
  const game=document.getElementById("game");
+ const sea=document.getElementById("sea");
  game.style.setProperty("--fish-zoom",String(zoomLevel));
  game.classList.toggle("zoomed",zoomLevel!==1);
+ if(sea)sea.style.setProperty("--scene-zoom",String(zoomLevel));
  document.querySelectorAll("#sea .item").forEach(el=>{
    el.style.fontSize=(32*zoomLevel)+"px";
    if(el.classList.contains("small"))el.style.fontSize=(24*zoomLevel)+"px";
@@ -1812,7 +1822,7 @@ if(paused)return;
 
 let touch=e.touches[0];
 
-hookX=touch.clientX;
+hookX=getScenePointerX(touch.clientX);
 
 updateHook();
 
@@ -1878,7 +1888,7 @@ function(e){
 
 if(!gameRunning)return;
 
-hookX=e.clientX;
+hookX=getScenePointerX(e.clientX);
 
 updateHook();
 
