@@ -529,6 +529,47 @@ padding:10px 11px;
 #game.zoomed .item.big{font-size:calc(44px * var(--fish-zoom,1));}
 @media(max-width:380px){#gameTools{top:96px;left:5px}#gameTools button{font-size:12px;padding:7px 9px}.storeCard{padding:15px}}
 
+
+/* إصلاح تداخل الواجهة على الهاتف: فصل القارب وأدوات التحكم عن مسار الخطاف */
+#hud{top:max(6px,env(safe-area-inset-top));right:8px;left:8px;max-width:none;justify-content:center;gap:4px;z-index:300}
+.info{padding:5px 7px;font-size:12px}
+#boat{top:7%;left:50%;width:160px;height:76px;transform:translateX(-50%);z-index:20}
+.boat{width:145px;height:39px;left:7px}
+.boatTop{bottom:29px;left:27px;width:105px;height:10px}
+.person{bottom:34px;left:62px;font-size:32px}
+.flag{bottom:36px;right:22px;font-size:26px}
+#sea{top:21%;bottom:86px;transform:none}
+#buttons{left:50%;bottom:max(7px,env(safe-area-inset-bottom));width:calc(100% - 12px);max-width:520px;justify-content:center;flex-wrap:wrap;gap:6px;z-index:700}
+#buttons button{padding:9px 10px;font-size:13px;min-height:39px;flex:1 1 auto;white-space:nowrap}
+#gameTools{top:auto;bottom:53px;left:8px;right:8px;display:flex;flex-direction:row;align-items:center;justify-content:flex-start;flex-wrap:wrap;gap:5px;z-index:650;pointer-events:none}
+#gameTools>*{pointer-events:auto}
+#gameTools button{min-height:35px;padding:6px 9px;font-size:12px}
+#gameTools .zoomControls{display:flex;padding:3px;gap:3px}
+#gameTools .zoomControls button{min-width:34px;min-height:32px;padding:4px}
+#zoomReadout{min-width:36px}
+#waterMood{z-index:10}
+#rope,#hook{pointer-events:none}
+@media(max-width:480px){
+ .info{font-size:11px;padding:4px 5px;border-width:1px}
+ #hud{gap:3px}
+ #sea{top:23%;bottom:94px}
+ #buttons{bottom:max(5px,env(safe-area-inset-bottom));gap:4px}
+ #buttons button{font-size:12px;padding:8px 7px;min-height:36px;border-radius:10px}
+ #gameTools{bottom:48px;left:5px;right:5px;gap:4px}
+ #gameTools button{font-size:11px;padding:5px 7px;min-height:32px}
+ #gameTools .zoomControls button{min-width:30px;min-height:29px}
+ #boat{top:8%;transform:translateX(-50%) scale(.88)}
+}
+@media(max-height:560px){
+ #hud{top:3px}
+ .info{font-size:10px;padding:3px 5px}
+ #boat{top:4%;transform:translateX(-50%) scale(.72)}
+ #sea{top:24%;bottom:82px}
+ #gameTools{bottom:44px}
+ #buttons{bottom:4px}
+ #buttons button{min-height:31px;padding:5px 7px}
+}
+
 </style>
 </head>
 
@@ -1260,12 +1301,12 @@ document.getElementById("sea").clientHeight;
 
 let targetY=
 Math.min(
-seaHeight-55,
+Math.max(70,seaHeight-115),
 130+
 Math.random()*
 Math.max(
-100,
-seaHeight-190
+70,
+seaHeight-260
 )
 );
 
