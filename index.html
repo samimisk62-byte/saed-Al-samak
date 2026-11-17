@@ -826,12 +826,12 @@ body.adventure-playing #adventureMenuButton{display:block}
       <div class="storeItemInfo"><b>طُعم الصياد</b><br>تمنحك 10 نقاط إضافية فور الشراء.<br><b>30 🪙</b></div>
       <button id="buyBait" type="button" onclick="buyBait()">شراء</button>
     </div>
-    <div class="storeItem"><div class="storeIcon">🧨</div><div class="storeItemInfo"><b>مفرقعات بحرية ملونة</b><br>مؤثرات احتفالية عند الفوز.<br><b>80 🪙</b></div><button onclick="buyAdventureItem("fireworks",80)">شراء</button></div>
-    <div class="storeItem"><div class="storeIcon">💣</div><div class="storeItemInfo"><b>درع القنابل</b><br>يحميك من أول قنبلة في المرحلة التالية.<br><b>100 🪙</b></div><button onclick="buyAdventureItem("shield",100)">شراء</button></div>
-    <div class="storeItem"><div class="storeIcon">🚤</div><div class="storeItemInfo"><b>قارب أزرق</b><br>لون جديد للقارب.<br><b>120 🪙</b></div><button onclick="buyBoatSkin("blue",120)">شراء</button></div>
-    <div class="storeItem"><div class="storeIcon">⛵</div><div class="storeItemInfo"><b>قارب ذهبي</b><br>طلاء ذهبي وبرتقالي.<br><b>150 🪙</b></div><button onclick="buyBoatSkin("gold",150)">شراء</button></div>
-    <div class="storeItem"><div class="storeIcon">🧢</div><div class="storeItemInfo"><b>زي الصياد البحري</b><br>ملابس زرقاء جديدة.<br><b>90 🪙</b></div><button onclick="buyOutfit("blue",90)">شراء</button></div>
-    <div class="storeItem"><div class="storeIcon">🧑‍✈️</div><div class="storeItemInfo"><b>زي القبطان</b><br>ملابس خاصة للمراحل المتقدمة.<br><b>140 🪙</b></div><button onclick="buyOutfit("captain",140)">شراء</button></div>
+    <div class="storeItem"><div class="storeIcon">🧨</div><div class="storeItemInfo"><b>مفرقعات بحرية ملونة</b><br>مؤثرات احتفالية عند الفوز.<br><b>80 🪙</b></div><button onclick="buyAdventureItem('fireworks',80)">شراء</button></div>
+    <div class="storeItem"><div class="storeIcon">💣</div><div class="storeItemInfo"><b>درع القنابل</b><br>يحميك من أول قنبلة في المرحلة التالية.<br><b>100 🪙</b></div><button onclick="buyAdventureItem('shield',100)">شراء</button></div>
+    <div class="storeItem"><div class="storeIcon">🚤</div><div class="storeItemInfo"><b>قارب أزرق</b><br>لون جديد للقارب.<br><b>120 🪙</b></div><button onclick="buyBoatSkin('blue',120)">شراء</button></div>
+    <div class="storeItem"><div class="storeIcon">⛵</div><div class="storeItemInfo"><b>قارب ذهبي</b><br>طلاء ذهبي وبرتقالي.<br><b>150 🪙</b></div><button onclick="buyBoatSkin('gold',150)">شراء</button></div>
+    <div class="storeItem"><div class="storeIcon">🧢</div><div class="storeItemInfo"><b>زي الصياد البحري</b><br>ملابس زرقاء جديدة.<br><b>90 🪙</b></div><button onclick="buyOutfit('blue',90)">شراء</button></div>
+    <div class="storeItem"><div class="storeIcon">🧑‍✈️</div><div class="storeItemInfo"><b>زي القبطان</b><br>ملابس خاصة للمراحل المتقدمة.<br><b>140 🪙</b></div><button onclick="buyOutfit('captain',140)">شراء</button></div>
     <button class="storeClose" type="button" onclick="closeStore()">إغلاق المتجر</button>
   </div>
 </div>
@@ -2040,6 +2040,7 @@ function pauseGame(){
 if(!gameRunning)return;
 
 paused=!paused;
+ if(paused)stopAdventureMelody();else startAdventureMelody();
 setWaveVolume(paused?0:0.12);
 
 document.querySelector(".pauseBtn").textContent=
@@ -2144,12 +2145,32 @@ function startWaveSound(){
    waveLfo.start();
    if(ctx.state==="suspended")ctx.resume();
    setWaveVolume(paused?0:.12);
+   if(!paused)startAdventureMelody();
  }catch(e){}
 }
 function setWaveVolume(value){
  if(waveMaster&&waveAudioContext)waveMaster.gain.setTargetAtTime(soundEnabled?value*(window.fishAudioLevels.music/100):0,waveAudioContext.currentTime,.25);
 }
+let adventureMelodyTimer=null,adventureMelodyStep=0;
+function startAdventureMelody(){
+ if(!soundEnabled||paused||adventureMelodyTimer||!waveAudioContext)return;
+ const notes=[330,349,415,440,415,349,330,294,330,392,415,494,440,415,349,330];
+ adventureMelodyTimer=setInterval(()=>{
+  if(!soundEnabled||paused||!waveAudioContext)return;
+  try{
+   const ctx=waveAudioContext,now=ctx.currentTime,n=notes[adventureMelodyStep++%notes.length];
+   const osc=ctx.createOscillator(),gain=ctx.createGain(),bass=ctx.createOscillator(),bassGain=ctx.createGain();
+   osc.type="triangle";osc.frequency.setValueAtTime(n,now);
+   gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(Math.min(.35,.12*(window.fishAudioLevels.music/100)),now+.035);gain.gain.exponentialRampToValueAtTime(.0001,now+.34);
+   bass.type="sine";bass.frequency.setValueAtTime(n/2,now);bassGain.gain.setValueAtTime(.0001,now);bassGain.gain.exponentialRampToValueAtTime(Math.min(.18,.055*(window.fishAudioLevels.music/100)),now+.04);bassGain.gain.exponentialRampToValueAtTime(.0001,now+.38);
+   osc.connect(gain);gain.connect(ctx.destination);bass.connect(bassGain);bassGain.connect(ctx.destination);
+   osc.start(now);osc.stop(now+.36);bass.start(now);bass.stop(now+.4);
+  }catch(e){}
+ },380);
+}
+function stopAdventureMelody(){if(adventureMelodyTimer){clearInterval(adventureMelodyTimer);adventureMelodyTimer=null;}}
 function stopWaveSound(){
+ stopAdventureMelody();
  try{
    if(waveSource){waveSource.stop();waveSource.disconnect();waveSource=null;}
    if(waveLfo){waveLfo.stop();waveLfo.disconnect();waveLfo=null;}
