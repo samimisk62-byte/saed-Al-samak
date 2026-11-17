@@ -710,9 +710,6 @@ body.adventure-playing #adventureMenuButton{display:block}
 #boat .long-curtain{position:absolute;left:47px;bottom:38px;width:86px;height:84px;border-left:4px solid #ffe9a8;border-right:4px solid #ffe9a8;background:repeating-linear-gradient(90deg,#e24f6c 0 12px,#ffd166 12px 24px);clip-path:polygon(0 0,100% 0,88% 100%,12% 100%);opacity:.9;pointer-events:none}
 #storeModal{z-index:2147483007!important}
 @media(max-width:500px){#adventureMenuButton{right:7px;width:49px;height:49px}#boat .fishing-net{transform:scale(.82);transform-origin:top left}}
- .storeItem button:disabled{opacity:.55;filter:grayscale(.5)}
-.storeItemInfo small{color:#c9f5ff}
-#sea .item{filter:drop-shadow(0 2px 4px #001d32aa)}
 </style>
 </head>
 
@@ -835,15 +832,6 @@ body.adventure-playing #adventureMenuButton{display:block}
     <div class="storeItem"><div class="storeIcon">⛵</div><div class="storeItemInfo"><b>قارب ذهبي</b><br>طلاء ذهبي وبرتقالي.<br><b>150 🪙</b></div><button onclick="buyBoatSkin('gold',150)">شراء</button></div>
     <div class="storeItem"><div class="storeIcon">🧢</div><div class="storeItemInfo"><b>زي الصياد البحري</b><br>ملابس زرقاء جديدة.<br><b>90 🪙</b></div><button onclick="buyOutfit('blue',90)">شراء</button></div>
     <div class="storeItem"><div class="storeIcon">🧑‍✈️</div><div class="storeItemInfo"><b>زي القبطان</b><br>ملابس خاصة للمراحل المتقدمة.<br><b>140 🪙</b></div><button onclick="buyOutfit('captain',140)">شراء</button></div>
-    <div class="storeItem"><div class="storeIcon">🪝</div><div class="storeItemInfo"><b>صنارة الصياد المحترف</b><br>تزيد فرصة التقاط الأسماك بشكل دائم.<br><b>180 🪙</b></div><button onclick="buyPermanentUpgrade('rod',180)">شراء</button></div>
-    <div class="storeItem"><div class="storeIcon">🥅</div><div class="storeItemInfo"><b>شبكة الصيد الذهبية</b><br>توسع دائرة التقاط الأسماك بشكل دائم.<br><b>220 🪙</b></div><button onclick="buyPermanentUpgrade('net',220)">شراء</button></div>
-    <div class="storeItem"><div class="storeIcon">🧲</div><div class="storeItemInfo"><b>مغناطيس الكنوز</b><br>5 شحنات تمنحك عملات إضافية عند صيد السمك.<br><b>90 🪙</b></div><button onclick="buyCharge('magnet',90,5)">شراء</button></div>
-    <div class="storeItem"><div class="storeIcon">🦈</div><div class="storeItemInfo"><b>طارد أسماك القرش</b><br>3 شحنات تلغي هجمة القرش وتحمي نقاطك.<br><b>130 🪙</b></div><button onclick="buyCharge('repellent',130,3)">شراء</button></div>
-    <div class="storeItem"><div class="storeIcon">💎</div><div class="storeItemInfo"><b>صندوق اللؤلؤ النادر</b><br>افتح صندوقًا يمنحك من 25 إلى 60 عملة.<br><b>75 🪙</b></div><button onclick="buyPearlChest()">فتح الصندوق</button></div>
-    <div class="storeItem"><div class="storeIcon">🌊</div><div class="storeItemInfo"><b>موجة الحظ</b><br>تضيف 25 نقطة إلى نتيجتك الحالية.<br><b>65 🪙</b></div><button onclick="buyScoreBoost(25,65)">شراء</button></div>
-    <div class="storeItem"><div class="storeIcon">🏴‍☠️</div><div class="storeItemInfo"><b>قارب القراصنة</b><br>طلاء أسود مميز للقارب.<br><b>110 🪙</b></div><button onclick="buyBoatSkin('pirate',110)">شراء</button></div>
-    <div class="storeItem"><div class="storeIcon">🤿</div><div class="storeItemInfo"><b>بدلة الغواص</b><br>ملابس استكشاف الأعماق.<br><b>170 🪙</b></div><button onclick="buyOutfit('diver',170)">شراء</button></div>
-    <div class="storeItem"><div class="storeIcon">👑</div><div class="storeItemInfo"><b>تاج ملك البحار</b><br>مظهر نادر للصياد.<br><b>250 🪙</b></div><button onclick="buyOutfit('king',250)">شراء</button></div>
     <button class="storeClose" type="button" onclick="closeStore()">إغلاق المتجر</button>
   </div>
 </div>
@@ -994,9 +982,6 @@ let bestScore=0;
 try{bestScore=Math.max(0,parseInt(localStorage.getItem("saedFishBestScore")||"0",10)||0);}catch(e){}
 let zoomLensOwned=false;
 let zoomLevel=1;
-let fishInventory={shield:0,magnet:0,repellent:0,rod:0,net:0};
-let claimedStageRewards=[];
-try{fishInventory=Object.assign(fishInventory,JSON.parse(localStorage.getItem("saedFishInventory")||"{}"));claimedStageRewards=JSON.parse(localStorage.getItem("saedFishStageRewards")||"[]");if(!Array.isArray(claimedStageRewards))claimedStageRewards=[];}catch(e){}
 try{unlockedLevel=Math.max(1,parseInt(localStorage.getItem("saedFishUnlockedLevel")||"1",10)||1);coins=Math.max(0,parseInt(localStorage.getItem("saedFishCoins")||"0",10)||0);zoomLensOwned=localStorage.getItem("saedFishZoomLens")==="yes";}catch(e){}
 
 let hookX=window.innerWidth/2;
@@ -1612,7 +1597,10 @@ Math.sqrt(
 dx*dx+dy*dy
 );
 
-let hit=(o.type.danger==="shark"?65:50)+(fishInventory.rod?12:0)+(fishInventory.net?18:0);
+let hit=
+o.type.danger==="shark"
+?65
+:50;
 
 if(distance<hit){
 
@@ -1620,8 +1608,12 @@ o.alive=false;
 if(o.type.danger){combo=0;}
 
 if(o.type.danger==="bomb"){
- if(fishInventory.shield>0){fishInventory.shield--;saveFishEconomy();removeObject(o);temporaryMessage("🛡️ الدرع أنقذك!","تم إبطال القنبلة. المتبقي: "+fishInventory.shield);updateHUD();return;}
- dangerHit("💣","القنبلة انفجرت!");
+
+dangerHit(
+"💣",
+"القنبلة انفجرت!"
+);
+
 }
 
 else if(o.type.danger==="firecracker"){
@@ -1634,7 +1626,7 @@ dangerHit(
 }
 
 else if(o.type.danger==="shark"){
- if(fishInventory.repellent>0){fishInventory.repellent--;saveFishEconomy();removeObject(o);temporaryMessage("🦈 طارد القروش!","نجوت من هجمة القرش. الشحنات المتبقية: "+fishInventory.repellent);updateHUD();return;}
+
 // فترة حماية قصيرة تمنع القرش من خصم الطاقة عدة مرات متتالية.
 const now=Date.now();
 if(now<sharkShieldUntil){
@@ -1669,7 +1661,6 @@ combo++;
 if(combo>0&&combo%3===0){score+=5;temporaryMessage("🔥 صيد متتالي!","3 أسماك متتالية — مكافأة +5 نقاط!");}
 const coinReward=Math.max(1,Math.ceil(o.type.value/5))*(o.type.rare?3:1);
 coins+=coinReward;
-if(fishInventory.magnet>0){coins+=3;fishInventory.magnet--;temporaryMessage("🧲 مغناطيس الكنوز!","+3 عملات إضافية. الشحنات المتبقية: "+fishInventory.magnet);}
 if(score>bestScore){bestScore=score;try{localStorage.setItem("saedFishBestScore",String(bestScore));}catch(e){}}
 saveFishEconomy();
 updateStoreCoins();
@@ -1815,15 +1806,6 @@ title,
    نهاية الرميات
 ========================== */
 
-function awardStagePrize(stage){
- if(claimedStageRewards.includes(stage))return "🎖️ جائزة هذه المرحلة حصلت عليها من قبل.";
- claimedStageRewards.push(stage);
- let prize=25+stage*5,extra="";
- if(stage%5===0){prize+=100;extra=" 🏅 مكافأة إنجاز خمس مراحل!";if(stage%10===0){prize+=150;fishInventory.magnet=(fishInventory.magnet||0)+5;extra+=" 💎 +5 شحنات مغناطيس كنوز!";}else{prize+=50;fishInventory.shield=(fishInventory.shield||0)+1;extra+=" 🛡️ +درع قنابل إضافي!";}}
- coins+=prize;saveFishEconomy();updateHUD();updateStoreCoins();
- return "🎁 جائزة اجتياز المرحلة: +"+prize+" عملة."+extra;
-}
-
 function endRound(){
 
 gameRunning=false;
@@ -1832,12 +1814,11 @@ const goal=20+(level-1)*5;
 roundWon=score>=goal;
 
 if(roundWon){
-  const stagePrizeText=awardStagePrize(level);
   unlockedLevel=Math.max(unlockedLevel,level+1);
   try{localStorage.setItem("saedFishUnlockedLevel",String(unlockedLevel));}catch(e){}
   showMessage(
     "🏆 فزت بالمرحلة "+level+"!",
-    "جمعت "+score+" نقطة من الهدف "+goal+".<br><br>"+stagePrizeText+"<br>🎁 فُتحت لك المرحلة التالية: "+(level+1)+"<br>🐟 ستظهر تحديات وأسماك أصعب.,
+    "جمعت "+score+" نقطة من الهدف "+goal+".<br><br>🎁 فُتحت لك المرحلة التالية: "+(level+1)+"<br>🐟 ستظهر تحديات وأسماك أصعب.",
     "NEXT — المرحلة التالية"
   );
 }else{
@@ -1930,7 +1911,7 @@ function closeStageDialog(){
 }
 
 function saveFishEconomy(){
- try{localStorage.setItem("saedFishCoins",String(coins));localStorage.setItem("saedFishZoomLens",zoomLensOwned?"yes":"no");localStorage.setItem("saedFishInventory",JSON.stringify(fishInventory));localStorage.setItem("saedFishStageRewards",JSON.stringify(claimedStageRewards));}catch(e){}
+ try{localStorage.setItem("saedFishCoins",String(coins));localStorage.setItem("saedFishZoomLens",zoomLensOwned?"yes":"no");}catch(e){}
 }
 function updateStoreCoins(){
  const a=document.getElementById("coinCount"),b=document.getElementById("storeCoinCount"),c=document.getElementById("mapCoinCount");
@@ -1956,14 +1937,10 @@ function buyZoomLens(){
  if(coins<50){alert("العملات غير كافية. اصطد المزيد من الأسماك لجمع العملات.");return;}
  coins-=50;zoomLensOwned=true;zoomLevel=1;saveFishEconomy();updateStoreCoins();applyZoom(); 
 }
-function buyAdventureItem(kind,cost){if(coins<cost){alert("العملات غير كافية.");return;}coins-=cost;if(kind==="shield"){fishInventory.shield=(fishInventory.shield||0)+1;}else{try{localStorage.setItem("saedFishFireworks","yes");}catch(e){}}saveFishEconomy();updateHUD();updateStoreCoins();alert(kind==="shield"?"تمت إضافة درع قنابل إلى مخزونك!":"تم فتح مؤثرات المفرقعات البحرية!");}
+function buyAdventureItem(kind,cost){if(coins<cost){alert("العملات غير كافية.");return;}coins-=cost;try{localStorage.setItem(kind==="fireworks"?"saedFishFireworks":"saedFishBombShield","yes");}catch(e){}saveFishEconomy();updateHUD();updateStoreCoins();alert("تم الشراء بنجاح!");}
 function buyBoatSkin(skin,cost){if(coins<cost){alert("العملات غير كافية.");return;}coins-=cost;try{localStorage.setItem("saedFishBoatSkin",skin);}catch(e){}saveFishEconomy();updateHUD();updateStoreCoins();applyAdventureAppearance(level);alert("تم تغيير القارب!");}
 function buyOutfit(outfit,cost){if(coins<cost){alert("العملات غير كافية.");return;}coins-=cost;try{localStorage.setItem("saedFishOutfit",outfit);}catch(e){}saveFishEconomy();updateHUD();updateStoreCoins();applyAdventureAppearance(level);alert("تم تغيير الزي!");}
-function applyAdventureAppearance(stage){let skin="wood",outfit="farmer";try{skin=localStorage.getItem("saedFishBoatSkin")||"wood";outfit=localStorage.getItem("saedFishOutfit")||"farmer";}catch(e){}const boat=document.querySelector("#boat .boat"),top=document.querySelector("#boat .boatTop"),person=document.querySelector("#boat .person"),flag=document.querySelector("#boat .flag");if(boat)boat.style.background=skin==="blue"?"linear-gradient(#6bc9ff,#12528e 75%,#082d55)":skin==="gold"?"linear-gradient(#ffe18a,#bf6425 75%,#71320e)":skin==="pirate"?"linear-gradient(#333,#111 75%,#050505)":"linear-gradient(#d98a43,#a85c2b 78%,#623016)";if(top)top.style.background=skin==="blue"?"#b9f1ff":skin==="gold"?"#ffe7a2":skin==="pirate"?"#222":"#ffc06a";if(person)person.textContent=outfit==="captain"?"🧑‍✈️":outfit==="blue"?"🧢":outfit==="diver"?"🤿":outfit==="king"?"🤴":"👨‍🌾";if(flag)flag.textContent=stage>=10?"🏴‍☠️":stage>=5?"🚩":"⚓";}
-function buyPermanentUpgrade(kind,cost){if(fishInventory[kind]){alert("هذا التطوير مملوك بالفعل.");return;}if(coins<cost){alert("العملات غير كافية.");return;}coins-=cost;fishInventory[kind]=1;saveFishEconomy();updateHUD();updateStoreCoins();alert("تم تفعيل التطوير الدائم!");}
-function buyCharge(kind,cost,count){if(coins<cost){alert("العملات غير كافية.");return;}coins-=cost;fishInventory[kind]=(fishInventory[kind]||0)+count;saveFishEconomy();updateHUD();updateStoreCoins();alert("تمت إضافة "+count+" شحنات إلى مخزونك.");}
-function buyPearlChest(){if(coins<75){alert("العملات غير كافية.");return;}coins-=75;const prize=25+Math.floor(Math.random()*36);coins+=prize;saveFishEconomy();updateHUD();updateStoreCoins();alert("💎 وجدت داخل الصندوق "+prize+" عملة!");}
-function buyScoreBoost(points,cost){if(coins<cost){alert("العملات غير كافية.");return;}if(!gameRunning){alert("ابدأ مرحلة أولًا لاستخدام موجة الحظ.");return;}coins-=cost;score+=points;saveFishEconomy();updateHUD();updateStoreCoins();alert("🌊 أضيفت "+points+" نقطة إلى نتيجتك!");}
+function applyAdventureAppearance(stage){let skin="wood",outfit="farmer";try{skin=localStorage.getItem("saedFishBoatSkin")||"wood";outfit=localStorage.getItem("saedFishOutfit")||"farmer";}catch(e){}const boat=document.querySelector("#boat .boat"),top=document.querySelector("#boat .boatTop"),person=document.querySelector("#boat .person"),flag=document.querySelector("#boat .flag");if(boat)boat.style.background=skin==="blue"?"linear-gradient(#6bc9ff,#12528e 75%,#082d55)":skin==="gold"?"linear-gradient(#ffe18a,#bf6425 75%,#71320e)":"linear-gradient(#d98a43,#a85c2b 78%,#623016)";if(top)top.style.background=skin==="blue"?"#b9f1ff":skin==="gold"?"#ffe7a2":"#ffc06a";if(person)person.textContent=outfit==="captain"?"🧑‍✈️":outfit==="blue"?"🧢":"👨‍🌾";if(flag)flag.textContent=stage>=10?"🏴‍☠️":stage>=5?"🚩":"⚓";}
 function buyBait(){
  if(coins<30){alert("العملات غير كافية. اصطد المزيد من الأسماك لجمع العملات.");return;}
  coins-=30;score+=10;saveFishEconomy();updateHUD();updateStoreCoins();alert("تم شراء الطُعم! أضفنا 10 نقاط إلى رصيدك.");
