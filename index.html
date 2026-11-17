@@ -692,6 +692,24 @@ html body .skiptranslate iframe{visibility:hidden!important}
 #universalLanguageButton:focus-visible,#universalSettingsButton:focus-visible{outline:3px solid #ffd166;outline-offset:3px}
 @media(max-width:500px){#universalLanguageButton{width:49px;height:49px;left:9px;bottom:10px}}
 
+
+/* عناصر قائمة المغامرة البحرية */
+#adventureMenuButton{display:none;position:fixed;right:12px;top:50%;transform:translateY(-50%);z-index:2147483005;width:54px;height:54px;border:3px solid #fff;border-radius:50%;background:linear-gradient(145deg,#ffe66b,#f18b22);color:#17394b;font-size:24px;font-weight:900;box-shadow:0 5px 18px #001b2caa}
+body.adventure-playing #adventureMenuButton{display:block}
+#adventureMenuShade{display:none;position:fixed;inset:0;z-index:2147483006;background:#001827e8;align-items:center;justify-content:center;padding:18px}
+#adventureMenuShade.open{display:flex}
+#adventureMenuCard{width:min(100%,390px);max-height:88vh;overflow:auto;background:linear-gradient(155deg,#087e9e,#063654);border:3px solid #c5f8ff;border-radius:24px;padding:18px;color:white;text-align:center}
+#adventureMenuCard .menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+#adventureMenuCard button{min-height:49px;border:2px solid white;border-radius:13px;background:#ffdf55;color:#173b4a;font-size:15px;font-weight:900;padding:9px}
+#stageMap .return-game-button{display:none;position:relative;z-index:10020;margin:8px auto;min-height:48px;padding:10px 20px;border:2px solid white;border-radius:14px;background:#ffdf55;color:#173b4a;font-weight:900;font-size:16px}
+#stageMap.in-game .return-game-button{display:block}
+#sea{top:13%!important;bottom:0!important}
+#rope{width:5px!important;box-shadow:0 0 4px #e9ffff}
+#hook{font-size:50px!important}
+#boat .fishing-net{position:absolute;left:8px;bottom:-32px;width:160px;height:82px;border:3px solid #e5fbff;border-top:0;border-radius:0 0 48% 48%;background:repeating-linear-gradient(0deg,transparent 0 10px,#e5fbff88 11px 12px),repeating-linear-gradient(90deg,transparent 0 12px,#e5fbff88 13px 14px);opacity:.9;pointer-events:none}
+#boat .long-curtain{position:absolute;left:47px;bottom:38px;width:86px;height:84px;border-left:4px solid #ffe9a8;border-right:4px solid #ffe9a8;background:repeating-linear-gradient(90deg,#e24f6c 0 12px,#ffd166 12px 24px);clip-path:polygon(0 0,100% 0,88% 100%,12% 100%);opacity:.9;pointer-events:none}
+#storeModal{z-index:2147483007!important}
+@media(max-width:500px){#adventureMenuButton{right:7px;width:49px;height:49px}#boat .fishing-net{transform:scale(.82);transform-origin:top left}}
 </style>
 </head>
 
@@ -745,7 +763,7 @@ html body .skiptranslate iframe{visibility:hidden!important}
 
 <div class="person">👨‍🌾</div>
 
-<div class="flag">🚩</div>
+<div class="flag">🚩</div><div class="long-curtain"></div><div class="fishing-net"></div>
 
 <div class="boatTop"></div>
 
@@ -808,10 +826,17 @@ html body .skiptranslate iframe{visibility:hidden!important}
       <div class="storeItemInfo"><b>طُعم الصياد</b><br>تمنحك 10 نقاط إضافية فور الشراء.<br><b>30 🪙</b></div>
       <button id="buyBait" type="button" onclick="buyBait()">شراء</button>
     </div>
+    <div class="storeItem"><div class="storeIcon">🧨</div><div class="storeItemInfo"><b>مفرقعات بحرية ملونة</b><br>مؤثرات احتفالية عند الفوز.<br><b>80 🪙</b></div><button onclick="buyAdventureItem("fireworks",80)">شراء</button></div>
+    <div class="storeItem"><div class="storeIcon">💣</div><div class="storeItemInfo"><b>درع القنابل</b><br>يحميك من أول قنبلة في المرحلة التالية.<br><b>100 🪙</b></div><button onclick="buyAdventureItem("shield",100)">شراء</button></div>
+    <div class="storeItem"><div class="storeIcon">🚤</div><div class="storeItemInfo"><b>قارب أزرق</b><br>لون جديد للقارب.<br><b>120 🪙</b></div><button onclick="buyBoatSkin("blue",120)">شراء</button></div>
+    <div class="storeItem"><div class="storeIcon">⛵</div><div class="storeItemInfo"><b>قارب ذهبي</b><br>طلاء ذهبي وبرتقالي.<br><b>150 🪙</b></div><button onclick="buyBoatSkin("gold",150)">شراء</button></div>
+    <div class="storeItem"><div class="storeIcon">🧢</div><div class="storeItemInfo"><b>زي الصياد البحري</b><br>ملابس زرقاء جديدة.<br><b>90 🪙</b></div><button onclick="buyOutfit("blue",90)">شراء</button></div>
+    <div class="storeItem"><div class="storeIcon">🧑‍✈️</div><div class="storeItemInfo"><b>زي القبطان</b><br>ملابس خاصة للمراحل المتقدمة.<br><b>140 🪙</b></div><button onclick="buyOutfit("captain",140)">شراء</button></div>
     <button class="storeClose" type="button" onclick="closeStore()">إغلاق المتجر</button>
   </div>
 </div>
 
+<button id="adventureMenuButton" type="button" onclick="openAdventureMenu()" aria-label="قائمة المغامرة">☰</button><div id="adventureMenuShade"><div id="adventureMenuCard"><h2>🧭 قائمة المغامرة البحرية</h2><div class="menu-grid"><button onclick="closeAdventureMenu()">▶ متابعة اللعب</button><button onclick="openAdventureStages()">🏆 قائمة المراحل</button><button onclick="openStore();closeAdventureMenu()">🛒 المتجر</button><button onclick="openRules();closeAdventureMenu()">📖 التعليمات</button><button onclick="toggleSound()">🔊 الصوت</button><button onclick="returnToHome()">🏠 البداية</button></div><button style="width:100%;margin-top:10px" onclick="closeAdventureMenu()">إغلاق القائمة</button></div></div>
 <!-- خريطة المراحل -->
 <div id="stageMap">
   <div class="mapHeading">🐋 رحلة صائد السمك</div>
@@ -828,7 +853,7 @@ html body .skiptranslate iframe{visibility:hidden!important}
     <b id="pageLabel">المراحل 1 - 12</b>
     <button id="nextStages" type="button" onclick="changeStagePage(1)">التالي ▶</button>
   </div>
-  <div class="mapHint">افز في المرحلة لفتح المرحلة التالية. المراحل تتواصل بلا نهاية.</div>
+  <div class="mapHint">افز في المرحلة لفتح المرحلة التالية. المراحل تتواصل بلا نهاية.</div><button class="return-game-button" type="button" onclick="returnToAdventure()">↩ رجوع إلى اللعبة</button><button class="return-game-button" type="button" onclick="returnToHome()">🏠 خروج إلى البداية</button>
   <div id="stageDialog">
     <button class="stageClose" type="button" onclick="closeStageDialog()" aria-label="إغلاق">×</button>
     <div class="stagePanel">
@@ -1020,7 +1045,9 @@ value:6
 ========================== */
 
 function startGame(stageNumber=selectedStage){
-
+document.body.classList.add("adventure-playing");
+document.getElementById("adventureMenuShade").classList.remove("open");
+document.getElementById("stageMap").classList.remove("in-game");
 document.getElementById("startScreen").style.display="none";
 document.getElementById("stageMap").style.display="none";
 document.getElementById("message").style.display="none";
@@ -1900,11 +1927,20 @@ function openStore(){
  document.getElementById("storeModal").style.display="flex";
 }
 function closeStore(){document.getElementById("storeModal").style.display="none";}
+function openAdventureMenu(){if(!gameRunning)return;paused=true;setWaveVolume(0);document.getElementById("adventureMenuShade").classList.add("open");}
+function closeAdventureMenu(){document.getElementById("adventureMenuShade").classList.remove("open");if(gameRunning){paused=false;setWaveVolume(.12);}}
+function openAdventureStages(){document.getElementById("adventureMenuShade").classList.remove("open");showStageMap();}
+function returnToAdventure(){document.getElementById("stageMap").style.display="none";document.getElementById("stageMap").classList.remove("in-game");if(gameRunning){paused=false;setWaveVolume(.12);}else startGame(selectedStage);}
+function returnToHome(){document.getElementById("adventureMenuShade").classList.remove("open");document.getElementById("stageMap").style.display="none";document.getElementById("startScreen").style.display="flex";document.body.classList.remove("adventure-playing");gameRunning=false;paused=false;stopWaveSound();}
 function buyZoomLens(){
  if(zoomLensOwned){updateStoreCoins();return;}
  if(coins<50){alert("العملات غير كافية. اصطد المزيد من الأسماك لجمع العملات.");return;}
  coins-=50;zoomLensOwned=true;zoomLevel=1;saveFishEconomy();updateStoreCoins();applyZoom(); 
 }
+function buyAdventureItem(kind,cost){if(coins<cost){alert("العملات غير كافية.");return;}coins-=cost;try{localStorage.setItem(kind==="fireworks"?"saedFishFireworks":"saedFishBombShield","yes");}catch(e){}saveFishEconomy();updateHUD();updateStoreCoins();alert("تم الشراء بنجاح!");}
+function buyBoatSkin(skin,cost){if(coins<cost){alert("العملات غير كافية.");return;}coins-=cost;try{localStorage.setItem("saedFishBoatSkin",skin);}catch(e){}saveFishEconomy();updateHUD();updateStoreCoins();applyAdventureAppearance(level);alert("تم تغيير القارب!");}
+function buyOutfit(outfit,cost){if(coins<cost){alert("العملات غير كافية.");return;}coins-=cost;try{localStorage.setItem("saedFishOutfit",outfit);}catch(e){}saveFishEconomy();updateHUD();updateStoreCoins();applyAdventureAppearance(level);alert("تم تغيير الزي!");}
+function applyAdventureAppearance(stage){let skin="wood",outfit="farmer";try{skin=localStorage.getItem("saedFishBoatSkin")||"wood";outfit=localStorage.getItem("saedFishOutfit")||"farmer";}catch(e){}const boat=document.querySelector("#boat .boat"),top=document.querySelector("#boat .boatTop"),person=document.querySelector("#boat .person"),flag=document.querySelector("#boat .flag");if(boat)boat.style.background=skin==="blue"?"linear-gradient(#6bc9ff,#12528e 75%,#082d55)":skin==="gold"?"linear-gradient(#ffe18a,#bf6425 75%,#71320e)":"linear-gradient(#d98a43,#a85c2b 78%,#623016)";if(top)top.style.background=skin==="blue"?"#b9f1ff":skin==="gold"?"#ffe7a2":"#ffc06a";if(person)person.textContent=outfit==="captain"?"🧑‍✈️":outfit==="blue"?"🧢":"👨‍🌾";if(flag)flag.textContent=stage>=10?"🏴‍☠️":stage>=5?"🚩":"⚓";}
 function buyBait(){
  if(coins<30){alert("العملات غير كافية. اصطد المزيد من الأسماك لجمع العملات.");return;}
  coins-=30;score+=10;saveFishEconomy();updateHUD();updateStoreCoins();alert("تم شراء الطُعم! أضفنا 10 نقاط إلى رصيدك.");
@@ -1936,9 +1972,8 @@ function applyZoom(){
 }
 
 function showStageMap(){
-  gameRunning=false;
-  stopWaveSound();
-  paused=false;
+  if(gameRunning){paused=true;setWaveVolume(0);document.getElementById("stageMap").classList.add("in-game");}
+  else document.getElementById("stageMap").classList.remove("in-game");
   document.getElementById("message").style.display="none";
   document.getElementById("startScreen").style.display="none";
   document.getElementById("stageMap").style.display="flex";
@@ -2005,7 +2040,7 @@ function pauseGame(){
 if(!gameRunning)return;
 
 paused=!paused;
-setWaveVolume(paused?0:0.035);
+setWaveVolume(paused?0:0.12);
 
 document.querySelector(".pauseBtn").textContent=
 paused
@@ -2059,6 +2094,7 @@ const waterThemes=[
 
 function applyStageEnvironment(stage){
  const theme=waterThemes[(Math.max(1,stage)-1)%waterThemes.length];
+ applyAdventureAppearance(stage);
  const g=document.getElementById("game");
  const sea=document.getElementById("sea");
  const mood=document.getElementById("waterMood");
@@ -2107,7 +2143,7 @@ function startWaveSound(){
    waveSource.start();
    waveLfo.start();
    if(ctx.state==="suspended")ctx.resume();
-   setWaveVolume(paused?0:.035);
+   setWaveVolume(paused?0:.12);
  }catch(e){}
 }
 function setWaveVolume(value){
@@ -2125,7 +2161,7 @@ function toggleSound(){
  soundEnabled=!soundEnabled;
  const b=document.getElementById("soundToggle");
  if(b)b.textContent=soundEnabled?"🔊 الصوت":"🔇 الصوت";
- if(soundEnabled){startWaveSound();setWaveVolume(paused?0:.035);}
+ if(soundEnabled){startWaveSound();setWaveVolume(paused?0:.12);}
  else{setWaveVolume(0);}
 }
 
