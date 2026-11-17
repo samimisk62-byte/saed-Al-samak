@@ -692,6 +692,18 @@ html body .skiptranslate iframe{visibility:hidden!important}
 #universalLanguageButton:focus-visible,#universalSettingsButton:focus-visible{outline:3px solid #ffd166;outline-offset:3px}
 @media(max-width:500px){#universalLanguageButton{width:49px;height:49px;left:9px;bottom:10px}}
 
+/* قائمة المغامرة البحرية الأصلية */
+#adventureMenuButton{display:none;position:fixed;right:12px;top:50%;transform:translateY(-50%);z-index:2147483005;width:54px;height:54px;border:3px solid #fff;border-radius:50%;background:linear-gradient(145deg,#ffe66b,#f18b22);color:#17394b;font-size:24px;font-weight:900;box-shadow:0 5px 18px #001b2caa;cursor:pointer}
+body.adventure-playing #adventureMenuButton{display:block}
+#adventureMenuShade{display:none;position:fixed;inset:0;z-index:2147483006;background:#001827e8;align-items:center;justify-content:center;padding:18px}
+#adventureMenuShade.open{display:flex}
+#adventureMenuCard{width:min(100%,390px);max-height:88vh;overflow:auto;background:linear-gradient(155deg,#087e9e,#063654);border:3px solid #c5f8ff;border-radius:24px;padding:18px;color:white;text-align:center}
+#adventureMenuCard .menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+#adventureMenuCard button{min-height:49px;border:2px solid white;border-radius:13px;background:#ffdf55;color:#173b4a;font-size:15px;font-weight:900;padding:9px;cursor:pointer}
+#stageMap .return-game-button{display:none;position:relative;z-index:10020;margin:8px auto;min-height:48px;padding:10px 20px;border:2px solid white;border-radius:14px;background:#ffdf55;color:#173b4a;font-weight:900;font-size:16px}
+#stageMap.in-game .return-game-button{display:block}
+@media(max-width:500px){#adventureMenuButton{right:7px;width:49px;height:49px}}
+
 </style>
 </head>
 
@@ -812,6 +824,22 @@ html body .skiptranslate iframe{visibility:hidden!important}
   </div>
 </div>
 
+<button id="adventureMenuButton" type="button" onclick="openAdventureMenu()" aria-label="قائمة المغامرة" title="القائمة والرجوع">☰</button>
+<div id="adventureMenuShade" role="dialog" aria-modal="true" aria-label="قائمة المغامرة البحرية">
+  <div id="adventureMenuCard">
+    <h2>🧭 قائمة المغامرة البحرية</h2>
+    <div class="menu-grid">
+      <button type="button" onclick="closeAdventureMenu()">▶ متابعة اللعب</button>
+      <button type="button" onclick="openAdventureStages()">🏆 قائمة المراحل</button>
+      <button type="button" onclick="openStore();closeAdventureMenu()">🛒 المتجر</button>
+      <button type="button" onclick="openRules();closeAdventureMenu()">📖 التعليمات</button>
+      <button type="button" onclick="toggleSound()">🔊 الصوت</button>
+      <button type="button" onclick="returnToHome()">🏠 البداية</button>
+    </div>
+    <button type="button" style="width:100%;margin-top:10px" onclick="closeAdventureMenu()">إغلاق القائمة</button>
+  </div>
+</div>
+
 <!-- خريطة المراحل -->
 <div id="stageMap">
   <div class="mapHeading">🐋 رحلة صائد السمك</div>
@@ -828,7 +856,7 @@ html body .skiptranslate iframe{visibility:hidden!important}
     <b id="pageLabel">المراحل 1 - 12</b>
     <button id="nextStages" type="button" onclick="changeStagePage(1)">التالي ▶</button>
   </div>
-  <div class="mapHint">افز في المرحلة لفتح المرحلة التالية. المراحل تتواصل بلا نهاية.</div>
+  <div class="mapHint">افز في المرحلة لفتح المرحلة التالية. المراحل تتواصل بلا نهاية.</div><button class="return-game-button" type="button" onclick="returnToAdventure()">↩ رجوع إلى اللعبة</button><button class="return-game-button" type="button" onclick="returnToHome()">🏠 خروج إلى البداية</button>
   <div id="stageDialog">
     <button class="stageClose" type="button" onclick="closeStageDialog()" aria-label="إغلاق">×</button>
     <div class="stagePanel">
@@ -1020,7 +1048,9 @@ value:6
 ========================== */
 
 function startGame(stageNumber=selectedStage){
-
+document.body.classList.add("adventure-playing");
+document.getElementById("adventureMenuShade").classList.remove("open");
+document.getElementById("stageMap").classList.remove("in-game");
 document.getElementById("startScreen").style.display="none";
 document.getElementById("stageMap").style.display="none";
 document.getElementById("message").style.display="none";
@@ -1900,6 +1930,45 @@ function openStore(){
  document.getElementById("storeModal").style.display="flex";
 }
 function closeStore(){document.getElementById("storeModal").style.display="none";}
+let adventureMenuWasPaused=false;
+function openAdventureMenu(){
+  if(!gameRunning)return;
+  adventureMenuWasPaused=paused;
+  paused=true;
+  setWaveVolume(0);
+  document.getElementById("adventureMenuShade").classList.add("open");
+}
+function closeAdventureMenu(){
+  document.getElementById("adventureMenuShade").classList.remove("open");
+  if(gameRunning){
+    paused=adventureMenuWasPaused;
+    setWaveVolume(paused?0:0.12);
+  }
+}
+function openAdventureStages(){
+  document.getElementById("adventureMenuShade").classList.remove("open");
+  showStageMap();
+}
+function returnToAdventure(){
+  document.getElementById("stageMap").style.display="none";
+  document.getElementById("stageMap").classList.remove("in-game");
+  if(gameRunning){
+    paused=false;
+    setWaveVolume(0.12);
+  }else{
+    startGame(selectedStage);
+  }
+}
+function returnToHome(){
+  document.getElementById("adventureMenuShade").classList.remove("open");
+  document.getElementById("stageMap").style.display="none";
+  document.getElementById("startScreen").style.display="flex";
+  document.body.classList.remove("adventure-playing");
+  gameRunning=false;
+  paused=false;
+  stopWaveSound();
+}
+
 function buyZoomLens(){
  if(zoomLensOwned){updateStoreCoins();return;}
  if(coins<50){alert("العملات غير كافية. اصطد المزيد من الأسماك لجمع العملات.");return;}
@@ -1936,9 +2005,13 @@ function applyZoom(){
 }
 
 function showStageMap(){
-  gameRunning=false;
-  stopWaveSound();
-  paused=false;
+  if(gameRunning){
+    paused=true;
+    setWaveVolume(0);
+    document.getElementById("stageMap").classList.add("in-game");
+  }else{
+    document.getElementById("stageMap").classList.remove("in-game");
+  }
   document.getElementById("message").style.display="none";
   document.getElementById("startScreen").style.display="none";
   document.getElementById("stageMap").style.display="flex";
