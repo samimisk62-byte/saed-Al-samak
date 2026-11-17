@@ -1612,10 +1612,7 @@ Math.sqrt(
 dx*dx+dy*dy
 );
 
-let hit=
-o.type.danger==="shark"
-?65
-:50;
+let hit=(o.type.danger==="shark"?65:50)+(fishInventory.rod?12:0)+(fishInventory.net?18:0);
 
 if(distance<hit){
 
@@ -1623,12 +1620,8 @@ o.alive=false;
 if(o.type.danger){combo=0;}
 
 if(o.type.danger==="bomb"){
-
-dangerHit(
-"💣",
-"القنبلة انفجرت!"
-);
-
+ if(fishInventory.shield>0){fishInventory.shield--;saveFishEconomy();removeObject(o);temporaryMessage("🛡️ الدرع أنقذك!","تم إبطال القنبلة. المتبقي: "+fishInventory.shield);updateHUD();return;}
+ dangerHit("💣","القنبلة انفجرت!");
 }
 
 else if(o.type.danger==="firecracker"){
@@ -1641,7 +1634,7 @@ dangerHit(
 }
 
 else if(o.type.danger==="shark"){
-
+ if(fishInventory.repellent>0){fishInventory.repellent--;saveFishEconomy();removeObject(o);temporaryMessage("🦈 طارد القروش!","نجوت من هجمة القرش. الشحنات المتبقية: "+fishInventory.repellent);updateHUD();return;}
 // فترة حماية قصيرة تمنع القرش من خصم الطاقة عدة مرات متتالية.
 const now=Date.now();
 if(now<sharkShieldUntil){
@@ -1676,6 +1669,7 @@ combo++;
 if(combo>0&&combo%3===0){score+=5;temporaryMessage("🔥 صيد متتالي!","3 أسماك متتالية — مكافأة +5 نقاط!");}
 const coinReward=Math.max(1,Math.ceil(o.type.value/5))*(o.type.rare?3:1);
 coins+=coinReward;
+if(fishInventory.magnet>0){coins+=3;fishInventory.magnet--;temporaryMessage("🧲 مغناطيس الكنوز!","+3 عملات إضافية. الشحنات المتبقية: "+fishInventory.magnet);}
 if(score>bestScore){bestScore=score;try{localStorage.setItem("saedFishBestScore",String(bestScore));}catch(e){}}
 saveFishEconomy();
 updateStoreCoins();
@@ -1825,7 +1819,7 @@ function awardStagePrize(stage){
  if(claimedStageRewards.includes(stage))return "🎖️ جائزة هذه المرحلة حصلت عليها من قبل.";
  claimedStageRewards.push(stage);
  let prize=25+stage*5,extra="";
- if(stage%5===0){prize+=100;extra=" 🏅 مكافأة إنجاز خمس مراحل!";if(stage%10===0){prize+=150;extra+=" 💎 مكافأة كنوز إضافية!";}else{prize+=50;extra+=" 🛡️ مكافأة درع إضافي!";}}
+ if(stage%5===0){prize+=100;extra=" 🏅 مكافأة إنجاز خمس مراحل!";if(stage%10===0){prize+=150;fishInventory.magnet=(fishInventory.magnet||0)+5;extra+=" 💎 +5 شحنات مغناطيس كنوز!";}else{prize+=50;fishInventory.shield=(fishInventory.shield||0)+1;extra+=" 🛡️ +درع قنابل إضافي!";}}
  coins+=prize;saveFishEconomy();updateHUD();updateStoreCoins();
  return "🎁 جائزة اجتياز المرحلة: +"+prize+" عملة."+extra;
 }
@@ -1965,7 +1959,7 @@ function buyZoomLens(){
 function buyAdventureItem(kind,cost){if(coins<cost){alert("العملات غير كافية.");return;}coins-=cost;try{localStorage.setItem(kind==="fireworks"?"saedFishFireworks":"saedFishBombShield","yes");}catch(e){}saveFishEconomy();updateHUD();updateStoreCoins();alert("تم الشراء بنجاح!");}
 function buyBoatSkin(skin,cost){if(coins<cost){alert("العملات غير كافية.");return;}coins-=cost;try{localStorage.setItem("saedFishBoatSkin",skin);}catch(e){}saveFishEconomy();updateHUD();updateStoreCoins();applyAdventureAppearance(level);alert("تم تغيير القارب!");}
 function buyOutfit(outfit,cost){if(coins<cost){alert("العملات غير كافية.");return;}coins-=cost;try{localStorage.setItem("saedFishOutfit",outfit);}catch(e){}saveFishEconomy();updateHUD();updateStoreCoins();applyAdventureAppearance(level);alert("تم تغيير الزي!");}
-function applyAdventureAppearance(stage){let skin="wood",outfit="farmer";try{skin=localStorage.getItem("saedFishBoatSkin")||"wood";outfit=localStorage.getItem("saedFishOutfit")||"farmer";}catch(e){}const boat=document.querySelector("#boat .boat"),top=document.querySelector("#boat .boatTop"),person=document.querySelector("#boat .person"),flag=document.querySelector("#boat .flag");if(boat)boat.style.background=skin==="blue"?"linear-gradient(#6bc9ff,#12528e 75%,#082d55)":skin==="gold"?"linear-gradient(#ffe18a,#bf6425 75%,#71320e)":"linear-gradient(#d98a43,#a85c2b 78%,#623016)";if(top)top.style.background=skin==="blue"?"#b9f1ff":skin==="gold"?"#ffe7a2":"#ffc06a";if(person)person.textContent=outfit==="captain"?"🧑‍✈️":outfit==="blue"?"🧢":"👨‍🌾";if(flag)flag.textContent=stage>=10?"🏴‍☠️":stage>=5?"🚩":"⚓";}
+function applyAdventureAppearance(stage){let skin="wood",outfit="farmer";try{skin=localStorage.getItem("saedFishBoatSkin")||"wood";outfit=localStorage.getItem("saedFishOutfit")||"farmer";}catch(e){}const boat=document.querySelector("#boat .boat"),top=document.querySelector("#boat .boatTop"),person=document.querySelector("#boat .person"),flag=document.querySelector("#boat .flag");if(boat)boat.style.background=skin==="blue"?"linear-gradient(#6bc9ff,#12528e 75%,#082d55)":skin==="gold"?"linear-gradient(#ffe18a,#bf6425 75%,#71320e)":skin==="pirate"?"linear-gradient(#333,#111 75%,#050505)":"linear-gradient(#d98a43,#a85c2b 78%,#623016)";if(top)top.style.background=skin==="blue"?"#b9f1ff":skin==="gold"?"#ffe7a2":skin==="pirate"?"#222":"#ffc06a";if(person)person.textContent=outfit==="captain"?"🧑‍✈️":outfit==="blue"?"🧢":outfit==="diver"?"🤿":outfit==="king"?"🤴":"👨‍🌾";if(flag)flag.textContent=stage>=10?"🏴‍☠️":stage>=5?"🚩":"⚓";}
 function buyPermanentUpgrade(kind,cost){if(fishInventory[kind]){alert("هذا التطوير مملوك بالفعل.");return;}if(coins<cost){alert("العملات غير كافية.");return;}coins-=cost;fishInventory[kind]=1;saveFishEconomy();updateHUD();updateStoreCoins();alert("تم تفعيل التطوير الدائم!");}
 function buyCharge(kind,cost,count){if(coins<cost){alert("العملات غير كافية.");return;}coins-=cost;fishInventory[kind]=(fishInventory[kind]||0)+count;saveFishEconomy();updateHUD();updateStoreCoins();alert("تمت إضافة "+count+" شحنات إلى مخزونك.");}
 function buyPearlChest(){if(coins<75){alert("العملات غير كافية.");return;}coins-=75;const prize=25+Math.floor(Math.random()*36);coins+=prize;saveFishEconomy();updateHUD();updateStoreCoins();alert("💎 وجدت داخل الصندوق "+prize+" عملة!");}
