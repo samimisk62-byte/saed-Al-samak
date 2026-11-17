@@ -1988,6 +1988,7 @@ function closeRules(){
    تطور البحر والأصوات
 ========================== */
 let soundEnabled=true;
+window.fishAudioLevels={music:100,effects:100};
 let waveAudioContext=null;
 let waveSource=null;
 let waveMaster=null;
@@ -2097,7 +2098,7 @@ osc.type="sine";
 osc.frequency.setValueAtTime(720,now);
 osc.frequency.exponentialRampToValueAtTime(1120,now+0.12);
 gain.gain.setValueAtTime(0.0001,now);
-gain.gain.exponentialRampToValueAtTime(0.22,now+0.02);
+gain.gain.exponentialRampToValueAtTime(0.22*(window.fishAudioLevels.effects/100),now+0.02);
 gain.gain.exponentialRampToValueAtTime(0.0001,now+0.24);
 osc.start(now);osc.stop(now+0.25);
 }else if(type==="splash"){
@@ -2105,7 +2106,7 @@ osc.type="sine";
 osc.frequency.setValueAtTime(520,now);
 osc.frequency.exponentialRampToValueAtTime(150,now+0.18);
 gain.gain.setValueAtTime(0.0001,now);
-gain.gain.exponentialRampToValueAtTime(0.13,now+0.012);
+gain.gain.exponentialRampToValueAtTime(0.13*(window.fishAudioLevels.effects/100),now+0.012);
 gain.gain.exponentialRampToValueAtTime(0.0001,now+0.2);
 osc.start(now);osc.stop(now+0.21);
 }else if(type==="firecracker"){
@@ -2113,7 +2114,7 @@ osc.type="square";
 osc.frequency.setValueAtTime(850,now);
 osc.frequency.exponentialRampToValueAtTime(120,now+0.32);
 gain.gain.setValueAtTime(0.0001,now);
-gain.gain.exponentialRampToValueAtTime(0.32,now+0.015);
+gain.gain.exponentialRampToValueAtTime(0.32*(window.fishAudioLevels.effects/100),now+0.015);
 gain.gain.exponentialRampToValueAtTime(0.0001,now+0.36);
 osc.start(now);osc.stop(now+0.37);
 }else{
@@ -2121,7 +2122,7 @@ osc.type="sawtooth";
 osc.frequency.setValueAtTime(150,now);
 osc.frequency.exponentialRampToValueAtTime(35,now+0.8);
 gain.gain.setValueAtTime(0.0001,now);
-gain.gain.exponentialRampToValueAtTime(0.5,now+0.02);
+gain.gain.exponentialRampToValueAtTime(0.5*(window.fishAudioLevels.effects/100),now+0.02);
 gain.gain.exponentialRampToValueAtTime(0.0001,now+0.8);
 osc.start(now);osc.stop(now+0.81);
 }
@@ -2341,9 +2342,10 @@ applyZoom();
 "use strict";
 const KEY="platform_universal_settings_v1";
 const $=id=>document.getElementById(id);
-const defaults={theme:"dark",text:"normal",zoom:100,motion:false,ballSpeed:100,aiSpeed:100};
+const defaults={theme:"dark",text:"normal",zoom:100,motion:false,ballSpeed:100,aiSpeed:100,fishMusic:100,fishEffects:100};
 let settings={...defaults};
 try{settings={...defaults,...JSON.parse(localStorage.getItem(KEY)||"{}")};}catch(e){}
+window.fishAudioLevels={music:Number(settings.fishMusic??100),effects:Number(settings.fishEffects??100)};
 function apply(){
 document.documentElement.classList.toggle("us-light-mode",settings.theme==="light");
 document.documentElement.classList.toggle("us-large-text",settings.text==="large");
@@ -2374,7 +2376,7 @@ function addGameRange(label,min,max,step,key){
  const wrap=document.createElement("label");wrap.textContent=label+" ";
  const value=document.createElement("span");value.textContent=String(settings[key]||100)+"%";wrap.appendChild(value);
  const input=document.createElement("input");input.type="range";input.min=String(min);input.max=String(max);input.step=String(step);input.value=String(settings[key]||100);input.style.width="100%";input.style.marginTop="7px";
- input.addEventListener("input",()=>{settings[key]=Number(input.value);value.textContent=input.value+"%";try{localStorage.setItem(KEY,JSON.stringify(settings));}catch(e){}});
+ input.addEventListener("input",()=>{settings[key]=Number(input.value);value.textContent=input.value+"%";if(key==="fishMusic"||key==="fishEffects"){window.fishAudioLevels[key==="fishMusic"?"music":"effects"]=Number(input.value);if(key==="fishMusic"&&typeof setWaveVolume==="function")setWaveVolume(paused?0:.035);}try{localStorage.setItem(KEY,JSON.stringify(settings));}catch(e){}});
  wrap.appendChild(input);gameButtons.appendChild(wrap);
 }
 
