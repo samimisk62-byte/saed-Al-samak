@@ -483,6 +483,57 @@ padding:10px 11px;
 
 }
 
+/* إصلاح ظهور قائمة المراحل والأزرار على الهواتف */
+#stageMap{
+ z-index:10000!important;
+ box-sizing:border-box;
+ padding: max(14px,env(safe-area-inset-top)) 12px max(88px,calc(env(safe-area-inset-bottom) + 76px));
+}
+#stageMap .mapHeading,#stageMap .mapHint,#stageMap .whaleMap,#stageMap .mapControls{
+ position:relative;
+ z-index:10001;
+}
+#stageMap .whaleMap{
+ flex:0 0 auto;
+ width:min(100%,520px);
+}
+#stageMap .stageGrid{z-index:10002}
+#stageMap .stageNode{
+ position:relative;
+ z-index:10003;
+ min-width:0;
+ min-height:46px;
+ opacity:1;
+ visibility:visible;
+ color:#fff;
+ background:#075d72;
+ border:2px solid #e8fcff;
+ box-shadow:0 3px 0 #02384a;
+}
+#stageMap .stageNode.open{background:#ffdf55;color:#173b4a;border-color:#fff5b8}
+#stageMap .stageNode.locked{background:#526b78;color:#fff;opacity:.82}
+#stageMap .mapControls button{
+ position:relative;
+ z-index:10004;
+ min-width:92px;
+ min-height:46px;
+ background:#ffdf55!important;
+ color:#173b4a!important;
+ border:2px solid #fff!important;
+ font-weight:900;
+}
+#stageMap #pageLabel{color:#fff;text-shadow:0 2px 4px #00283b}
+#stageMap #stageDialog{z-index:10010!important}
+#stageMap #stageDialog button{visibility:visible;opacity:1}
+#gameTools,#buttons{z-index:500!important}
+#universalSettingsButton,#gameZoomControls,#universalLanguageButton{z-index:2147483000!important}
+@media(max-width:600px){
+ #stageMap{overflow-y:auto!important;overscroll-behavior:contain}
+ #stageMap .whaleMap{min-height:360px}
+ #stageMap .stageGrid{grid-template-columns:repeat(4,minmax(0,1fr));width:100%}
+ #stageMap .mapControls{width:100%;gap:7px}
+ #stageMap .mapControls button{flex:1}
+}
 /* خريطة المراحل على جسم السمكة العملاقة */
 #stageMap{position:absolute;z-index:550;inset:0;display:flex;flex-direction:column;align-items:center;overflow:auto;padding:12px 10px 18px;background:linear-gradient(180deg,#052b49,#087da0 62%,#063a58);touch-action:pan-y}
 .mapHeading{font-size:clamp(22px,5vw,32px);font-weight:bold;text-align:center;margin:2px 0 4px;color:#fff}
