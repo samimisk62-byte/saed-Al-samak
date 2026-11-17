@@ -1821,6 +1821,15 @@ title,
    نهاية الرميات
 ========================== */
 
+function awardStagePrize(stage){
+ if(claimedStageRewards.includes(stage))return "🎖️ جائزة هذه المرحلة حصلت عليها من قبل.";
+ claimedStageRewards.push(stage);
+ let prize=25+stage*5,extra="";
+ if(stage%5===0){prize+=100;extra=" 🏅 مكافأة إنجاز خمس مراحل!";if(stage%10===0){prize+=150;extra+=" 💎 مكافأة كنوز إضافية!";}else{prize+=50;extra+=" 🛡️ مكافأة درع إضافي!";}}
+ coins+=prize;saveFishEconomy();updateHUD();updateStoreCoins();
+ return "🎁 جائزة اجتياز المرحلة: +"+prize+" عملة."+extra;
+}
+
 function endRound(){
 
 gameRunning=false;
@@ -1829,11 +1838,12 @@ const goal=20+(level-1)*5;
 roundWon=score>=goal;
 
 if(roundWon){
+  const stagePrizeText=awardStagePrize(level);
   unlockedLevel=Math.max(unlockedLevel,level+1);
   try{localStorage.setItem("saedFishUnlockedLevel",String(unlockedLevel));}catch(e){}
   showMessage(
     "🏆 فزت بالمرحلة "+level+"!",
-    "جمعت "+score+" نقطة من الهدف "+goal+".<br><br>🎁 فُتحت لك المرحلة التالية: "+(level+1)+"<br>🐟 ستظهر تحديات وأسماك أصعب.",
+    "جمعت "+score+" نقطة من الهدف "+goal+".<br><br>"+stagePrizeText+"<br>🎁 فُتحت لك المرحلة التالية: "+(level+1)+"<br>🐟 ستظهر تحديات وأسماك أصعب.,
     "NEXT — المرحلة التالية"
   );
 }else{
