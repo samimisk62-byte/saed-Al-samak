@@ -2060,7 +2060,7 @@ function startWaveSound(){
  }catch(e){}
 }
 function setWaveVolume(value){
- if(waveMaster&&waveAudioContext)waveMaster.gain.setTargetAtTime(soundEnabled?value:0,waveAudioContext.currentTime,.25);
+ if(waveMaster&&waveAudioContext)waveMaster.gain.setTargetAtTime(soundEnabled?value*(window.fishAudioLevels.music/100):0,waveAudioContext.currentTime,.25);
 }
 function stopWaveSound(){
  try{
@@ -2395,6 +2395,8 @@ if($("easy")&&$("medium")&&$("hard")){
  addGameAction("📖 قواعد اللعبة","rulesBtn");
 }else if($("soundToggle")){
  gameControls.style.display="block";
+ addGameRange("🎵 مستوى صوت البحر",0,300,5,"fishMusic");
+ addGameRange("💥 مستوى أصوات الصيد والانفجارات",0,300,5,"fishEffects");
  addGameAction("🔊 تشغيل/إيقاف الصوت","soundToggle");
  const pause=$("game")&&$("game").querySelector(".pauseBtn");
  if(pause)addGameAction("⏸️ إيقاف/متابعة",pause);
