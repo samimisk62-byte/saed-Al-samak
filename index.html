@@ -1055,6 +1055,15 @@ updateHook();
 createBubbles();
 
 createSeaObjects();
+if(level%25===0){
+ temporaryMessage("🐉 مفاجأة أسطورية!","ظهر تنين الكنز في هذه المرحلة! اصطده لتحصل على نقاط وعملات إضافية.");
+}else if(level%10===0){
+ temporaryMessage("🌪️ تحدي البحر العاصف!","ازدادت سرعة الأسماك والمخاطر — ابحث عن الكنز الذهبي!");
+}else if(level%5===0){
+ temporaryMessage("💎 مرحلة الكنز!","توجد حورية كنز نادرة في البحر. حاول اصطيادها!");
+}else if(level%3===0){
+ temporaryMessage("🐬 زيارة الدلافين!","انتبه لحركة الأسماك السريعة، فقد تجد صيدًا ثمينًا!");
+}
 
 if(animationFrame){
 
@@ -1189,6 +1198,13 @@ if(rareRoll<Math.min(0.075+level*0.002,0.12)){
  type=fish[Math.floor(Math.random()*fish.length)];
 }
 }
+if(!type.danger&&type.value){
+ type={...type,value:Math.round(type.value*(1+Math.floor((level-1)/10)*.25))};
+}
+if(!type.danger&&level%5===0&&i===0){
+ const treasureValue=Math.round(100*(1+Math.floor((level-1)/10)*.25));
+ type={emoji:level%25===0?"🐉":"🧜‍♀️",value:treasureValue,rare:"diamond",rareName:level%25===0?"تنين الكنز الأسطوري":"حورية الكنز"};
+}
 
 let element=document.createElement("div");
 
@@ -1262,7 +1278,7 @@ Math.random()*.8
 1.7
 *
 (
-1+level*.12
+1+Math.min(level-1,40)*.035
 )
 *
 (
@@ -1806,7 +1822,7 @@ if(roundWon){
   try{localStorage.setItem("saedFishUnlockedLevel",String(unlockedLevel));}catch(e){}
   showMessage(
     "🏆 فزت بالمرحلة "+level+"!",
-    "جمعت "+score+" نقطة من الهدف "+goal+".<br><br>🎁 مكافأة اجتياز المرحلة: "+(stageReward?stageReward+" عملة 🪙":"تم استلام مكافأة هذه المرحلة سابقًا")+"<br>🎁 فُتحت لك المرحلة التالية: "+(level+1)+"<br>🐟 ستظهر تحديات وأسماك أصعب.",
+    "جمعت "+score+" نقطة من الهدف "+goal+".<br><br>🎁 مكافأة اجتياز المرحلة: "+(stageReward?stageReward+" عملة 🪙":"تم استلام مكافأة هذه المرحلة سابقًا")+"<br>🎁 فُتحت لك المرحلة التالية: "+(level+1)+"<br>"+(level%25===0?"🐉 اجتزت محطة أسطورية!":level%10===0?"🌪️ اجتزت تحدي البحر العاصف!":level%5===0?"💎 تم تجاوز مرحلة الكنز!":"🐟 المرحلة التالية أصعب وبها مفاجآت جديدة."),
     "NEXT — المرحلة التالية"
   );
 }else{
@@ -1883,7 +1899,7 @@ function selectStage(n){
   if(n>unlockedLevel)return;
   selectedStage=n;
   document.getElementById("selectedStageTitle").textContent="المرحلة "+n;
-  document.getElementById("selectedStageInfo").innerHTML="الهدف: "+(20+(n-1)*5)+" نقطة.<br>للفوز، اجمع الهدف خلال 20 رمية.";
+  document.getElementById("selectedStageInfo").innerHTML="الهدف: "+(20+(n-1)*5)+" نقطة.<br>للفوز، اجمع الهدف خلال 20 رمية.<br><br>"+(n%25===0?"🐉 مفاجأة أسطورية وجائزة نادرة":n%10===0?"🌪️ تحدي البحر العاصف":n%5===0?"💎 كنز نادر مخفي":"🐟 تحديات تتطور مع تقدمك");
   document.getElementById("stageNextButton").style.display=(n<unlockedLevel)?"inline-block":"none";
   document.getElementById("stageDialog").style.display="flex";
 }
