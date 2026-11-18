@@ -693,8 +693,7 @@ html body .skiptranslate iframe{visibility:hidden!important}
 @media(max-width:500px){#universalLanguageButton{width:49px;height:49px;left:9px;bottom:10px}}
 
 /* قائمة المغامرة البحرية الأصلية */
-#adventureMenuButton{display:none;position:fixed;right:12px;top:50%;transform:translateY(-50%);z-index:2147483005;width:54px;height:54px;border:3px solid #fff;border-radius:50%;background:linear-gradient(145deg,#ffe66b,#f18b22);color:#17394b;font-size:24px;font-weight:900;box-shadow:0 5px 18px #001b2caa;cursor:pointer}
-body.adventure-playing #adventureMenuButton{display:block}
+#adventureMenuButton{display:flex!important;align-items:center;justify-content:center;position:fixed;right:12px;top:50%;transform:translateY(-50%);z-index:2147483647;width:54px;height:54px;border:3px solid #fff;border-radius:50%;background:linear-gradient(145deg,#ffe66b,#f18b22);color:#17394b;font-size:24px;font-weight:900;box-shadow:0 5px 18px #001b2caa;cursor:pointer}
 #adventureMenuShade{display:none;position:fixed;inset:0;z-index:2147483006;background:#001827e8;align-items:center;justify-content:center;padding:18px}
 #adventureMenuShade.open{display:flex}
 #adventureMenuCard{width:min(100%,390px);max-height:88vh;overflow:auto;background:linear-gradient(155deg,#087e9e,#063654);border:3px solid #c5f8ff;border-radius:24px;padding:18px;color:white;text-align:center}
@@ -821,22 +820,6 @@ body.adventure-playing #adventureMenuButton{display:block}
       <button id="buyBait" type="button" onclick="buyBait()">شراء</button>
     </div>
     <button class="storeClose" type="button" onclick="closeStore()">إغلاق المتجر</button>
-  </div>
-</div>
-
-<button id="adventureMenuButton" type="button" onclick="openAdventureMenu()" aria-label="قائمة المغامرة" title="القائمة والرجوع">☰</button>
-<div id="adventureMenuShade" role="dialog" aria-modal="true" aria-label="قائمة المغامرة البحرية">
-  <div id="adventureMenuCard">
-    <h2>🧭 قائمة المغامرة البحرية</h2>
-    <div class="menu-grid">
-      <button type="button" onclick="closeAdventureMenu()">▶ متابعة اللعب</button>
-      <button type="button" onclick="openAdventureStages()">🏆 قائمة المراحل</button>
-      <button type="button" onclick="openStore();closeAdventureMenu()">🛒 المتجر</button>
-      <button type="button" onclick="openRules();closeAdventureMenu()">📖 التعليمات</button>
-      <button type="button" onclick="toggleSound()">🔊 الصوت</button>
-      <button type="button" onclick="returnToHome()">🏠 البداية</button>
-    </div>
-    <button type="button" style="width:100%;margin-top:10px" onclick="closeAdventureMenu()">إغلاق القائمة</button>
   </div>
 </div>
 
@@ -1932,10 +1915,8 @@ function openStore(){
 function closeStore(){document.getElementById("storeModal").style.display="none";}
 let adventureMenuWasPaused=false;
 function openAdventureMenu(){
-  if(!gameRunning)return;
   adventureMenuWasPaused=paused;
-  paused=true;
-  setWaveVolume(0);
+  if(gameRunning){paused=true;setWaveVolume(0);}
   document.getElementById("adventureMenuShade").classList.add("open");
 }
 function closeAdventureMenu(){
@@ -2826,5 +2807,21 @@ function init(){
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();
 </script>
+<button id="adventureMenuButton" type="button" onclick="openAdventureMenu()" aria-label="قائمة المغامرة" title="القائمة والرجوع">☰</button>
+<div id="adventureMenuShade" role="dialog" aria-modal="true" aria-label="قائمة المغامرة البحرية">
+  <div id="adventureMenuCard">
+    <h2>🧭 قائمة المغامرة البحرية</h2>
+    <div class="menu-grid">
+      <button type="button" onclick="closeAdventureMenu()">▶ متابعة اللعب</button>
+      <button type="button" onclick="openAdventureStages()">🏆 قائمة المراحل</button>
+      <button type="button" onclick="openStore();closeAdventureMenu()">🛒 المتجر</button>
+      <button type="button" onclick="openRules();closeAdventureMenu()">📖 التعليمات</button>
+      <button type="button" onclick="toggleSound()">🔊 الصوت</button>
+      <button type="button" onclick="returnToHome()">🏠 البداية</button>
+    </div>
+    <button type="button" style="width:100%;margin-top:10px" onclick="closeAdventureMenu()">إغلاق القائمة</button>
+  </div>
+</div>
+
 </body>
 </html>
