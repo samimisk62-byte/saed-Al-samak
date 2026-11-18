@@ -575,6 +575,13 @@ padding:10px 11px;
 .storeItemInfo{flex:1;min-width:0;line-height:1.6}
 .storeItem button,.storeClose{min-height:42px;padding:9px 13px;border:0;border-radius:11px;font-weight:bold;background:#ffdb4c;color:#17394b}
 .storeClose{background:#d9f7ff;margin-top:8px}
+.storeCard{max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.storeSectionTitle{margin:18px 0 8px;padding:9px;border-radius:12px;background:#00344d;color:#ffe58a;font-weight:900;text-align:right}
+.storeNote{font-size:12px;color:#d5f5ff;line-height:1.7}
+#storeModal .storeItem button{min-width:92px;font-size:12px;white-space:normal}
+#storeModal .storeItem button:disabled{opacity:.7;background:#9ce3b0}
+#storeBurst{position:fixed;inset:0;z-index:2147483647;display:none;align-items:center;justify-content:center;pointer-events:none;font-size:clamp(48px,15vw,100px);text-shadow:0 0 25px #ffe66d;animation:storeBurstPop .8s ease-out}
+@keyframes storeBurstPop{0%{opacity:0;transform:scale(.25) rotate(-15deg)}35%{opacity:1;transform:scale(1.2) rotate(8deg)}100%{opacity:0;transform:scale(1.8) rotate(0)}}
 #game.zoomed .item{font-size:calc(32px * var(--fish-zoom,1));}
 #game.zoomed .item.small{font-size:calc(24px * var(--fish-zoom,1));}
 #game.zoomed .item.big{font-size:calc(44px * var(--fish-zoom,1));}
@@ -951,6 +958,10 @@ let bestScore=0;
 try{bestScore=Math.max(0,parseInt(localStorage.getItem("saedFishBestScore")||"0",10)||0);}catch(e){}
 let zoomLensOwned=false;
 let zoomLevel=1;
+let fishStoreOwned={};
+let fishStoreSelected={sea:-1,boat:"classic",fisher:"farmer"};
+try{fishStoreOwned=JSON.parse(localStorage.getItem("saedFishStoreOwned")||"{}")||{};fishStoreSelected=Object.assign(fishStoreSelected,JSON.parse(localStorage.getItem("saedFishStoreSelected")||"{}")||{});}catch(e){}
+
 try{unlockedLevel=Math.max(1,parseInt(localStorage.getItem("saedFishUnlockedLevel")||"1",10)||1);coins=Math.max(0,parseInt(localStorage.getItem("saedFishCoins")||"0",10)||0);zoomLensOwned=localStorage.getItem("saedFishZoomLens")==="yes";}catch(e){}
 
 let hookX=window.innerWidth/2;
@@ -1783,11 +1794,19 @@ const goal=20+(level-1)*5;
 roundWon=score>=goal;
 
 if(roundWon){
+  let stageRewards={};try{stageRewards=JSON.parse(localStorage.getItem("saedFishStageRewards")||"{}")||{};}catch(e){}
+  let stageReward=0;
+  if(!stageRewards[String(level)]){
+    stageReward=20+Math.min(level*5,100);
+    coins+=stageReward;stageRewards[String(level)]=true;
+    try{localStorage.setItem("saedFishStageRewards",JSON.stringify(stageRewards));}catch(e){}
+    saveFishEconomy();
+  }
   unlockedLevel=Math.max(unlockedLevel,level+1);
   try{localStorage.setItem("saedFishUnlockedLevel",String(unlockedLevel));}catch(e){}
   showMessage(
     "🏆 فزت بالمرحلة "+level+"!",
-    "جمعت "+score+" نقطة من الهدف "+goal+".<br><br>🎁 فُتحت لك المرحلة التالية: "+(level+1)+"<br>🐟 ستظهر تحديات وأسماك أصعب.",
+    "جمعت "+score+" نقطة من الهدف "+goal+".<br><br>🎁 مكافأة اجتياز المرحلة: "+(stageReward?stageReward+" عملة 🪙":"تم استلام مكافأة هذه المرحلة سابقًا")+"<br>🎁 فُتحت لك المرحلة التالية: "+(level+1)+"<br>🐟 ستظهر تحديات وأسماك أصعب.",
     "NEXT — المرحلة التالية"
   );
 }else{
@@ -1883,6 +1902,7 @@ function saveFishEconomy(){
  try{localStorage.setItem("saedFishCoins",String(coins));localStorage.setItem("saedFishZoomLens",zoomLensOwned?"yes":"no");}catch(e){}
 }
 function updateStoreCoins(){
+ updateStoreButtons();
  const a=document.getElementById("coinCount"),b=document.getElementById("storeCoinCount"),c=document.getElementById("mapCoinCount");
  if(a)a.textContent=coins;if(b)b.textContent=coins;if(c)c.textContent=coins;
  const buy=document.getElementById("buyZoomLens");
@@ -1940,6 +1960,61 @@ function returnToHome(){
   gameRunning=false;
   paused=false;
   stopWaveSound();
+}
+
+
+function saveFishStoreLooks(){
+ try{localStorage.setItem("saedFishStoreOwned",JSON.stringify(fishStoreOwned));localStorage.setItem("saedFishStoreSelected",JSON.stringify(fishStoreSelected));}catch(e){}
+}
+function applyFishStoreLook(){
+ const boat=document.querySelector("#boat .boat"),top=document.querySelector("#boat .boatTop"),person=document.querySelector("#boat .person");
+ const boats={classic:["#9b5425","#d88438"],blue:["#075fa8","#42b9ff"],gold:["#b77908","#ffe071"]};
+ const colors=boats[fishStoreSelected.boat]||boats.classic;
+ if(boat){boat.style.background=colors[0];boat.style.borderBottomColor=fishStoreSelected.boat==="gold"?"#704400":fishStoreSelected.boat==="blue"?"#063d75":"#4b260f";}
+ if(top)top.style.background=colors[1];
+ if(person){const looks={farmer:"👨‍🌾",cap:"🧢🧑‍🌾",cool:"🕶️🧑‍✈️"};person.textContent=looks[fishStoreSelected.fisher]||looks.farmer;}
+}
+function storePurchase(cost){
+ if(coins<cost){alert("عملاتك غير كافية. اصطد المزيد من الأسماك ثم حاول مرة أخرى.");return false;}
+ coins-=cost;saveFishEconomy();updateStoreCoins();return true;
+}
+function buySeaStyle(index,cost){
+ const key="sea"+index;
+ if(!fishStoreOwned[key]){if(!storePurchase(cost))return;fishStoreOwned[key]=true;}
+ fishStoreSelected.sea=index;saveFishStoreLooks();applyStageEnvironment(level);updateStoreButtons();temporaryMessage("🌊 تم تغيير البحر","استمتع بالبحر الجديد!");
+}
+function buyBoatStyle(style,cost){
+ const key="boat_"+style;
+ if(!fishStoreOwned[key]){if(!storePurchase(cost))return;fishStoreOwned[key]=true;}
+ fishStoreSelected.boat=style;saveFishStoreLooks();applyFishStoreLook();updateStoreButtons();temporaryMessage("🚤 مركب جديد","تم تجهيز مركبك بالشكل الذي اخترته!");
+}
+function buyFisherLook(style,cost){
+ const key="fisher_"+style;
+ if(!fishStoreOwned[key]){if(!storePurchase(cost))return;fishStoreOwned[key]=true;}
+ fishStoreSelected.fisher=style;saveFishStoreLooks();applyFishStoreLook();updateStoreButtons();temporaryMessage("🧑‍🌾 مظهر جديد","الصياد جاهز للمغامرة!");
+}
+function showStoreBurst(symbol){
+ let el=document.getElementById("storeBurst");
+ if(!el){el=document.createElement("div");el.id="storeBurst";document.body.appendChild(el);}
+ el.textContent=symbol;el.style.display="flex";el.style.animation="none";void el.offsetWidth;el.style.animation="storeBurstPop .8s ease-out";
+ setTimeout(()=>{el.style.display="none";},850);
+}
+function buyStoreBoost(type,cost){
+ if(!storePurchase(cost))return;
+ if(type==="fireworks"){showStoreBurst("🎆🧨✨");firecrackerSound();temporaryMessage("🎉 احتفال بحري","مفرقعات ملونة!");}
+ if(type==="bomb"){score+=25;updateHUD();showStoreBurst("💣💥🐟");explosionSound();temporaryMessage("💥 قنبلة الصيد","أضفنا 25 نقطة إلى نتيجتك!");}
+ if(type==="bait"){score+=20;updateHUD();showStoreBurst("🪱✨");temporaryMessage("🪱 طُعم ذهبي","أضفنا 20 نقطة إلى نتيجتك!");}
+ if(type==="throws"){throws+=5;updateHUD();showStoreBurst("🎣➕5");temporaryMessage("🎣 رميات إضافية","أضفنا 5 رميات للمرحلة!");}
+}
+function updateStoreButtons(){
+ const buttons=document.querySelectorAll("#storeModal button[onclick]");
+ buttons.forEach(b=>{
+  const fn=b.getAttribute("onclick")||"";
+  const m=fn.match(/buySeaStyle\((\d+)/)||fn.match(/buyBoatStyle\('(blue|gold)'/)||fn.match(/buyFisherLook\('(cap|cool)'/);
+  if(!m)return;
+  let key=fn.includes("buySeaStyle")?"sea"+m[1]:fn.includes("buyBoatStyle")?"boat_"+m[1]:"fisher_"+m[1];
+  if(fishStoreOwned[key])b.textContent=(fn.includes("buySeaStyle")&&fishStoreSelected.sea===Number(m[1]))||(fn.includes("buyBoatStyle")&&fishStoreSelected.boat===m[1])||(fn.includes("buyFisherLook")&&fishStoreSelected.fisher===m[1])?"محدد ✓":"اختيار";
+ });
 }
 
 function buyZoomLens(){
@@ -2104,12 +2179,13 @@ const waterThemes=[
 ];
 
 function applyStageEnvironment(stage){
- const theme=waterThemes[(Math.max(1,stage)-1)%waterThemes.length];
+ const theme=(Number(fishStoreSelected.sea)>=0&&waterThemes[Number(fishStoreSelected.sea)])?waterThemes[Number(fishStoreSelected.sea)]:waterThemes[(Math.max(1,stage)-1)%waterThemes.length];
  const g=document.getElementById("game");
  const sea=document.getElementById("sea");
  const mood=document.getElementById("waterMood");
  if(g)g.style.background=theme.bg;
  if(mood)mood.textContent=theme.emoji+" "+theme.name+" · مرحلة "+stage;
+ applyFishStoreLook();
  if(sea){
    sea.style.setProperty("--wave-duration",Math.max(1.15,3.5-Math.min(stage-1,24)*0.085)+"s");
    sea.style.setProperty("--wave-opacity",Math.min(.55,.22+stage*.012));
@@ -2801,19 +2877,27 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 </script>
 <div id="storeModal" role="dialog" aria-modal="true" aria-label="متجر أدوات الصيد">
   <div class="storeCard">
-    <h2>🛒 متجر صائد السمك</h2>
-    <p>اجمع العملات من صيد الأسماك واشترِ أدوات تساعدك.</p>
+    <h2>🛒 متجر صائد السمك الكبير</h2>
+    <p>طوّر مركبك، غيّر شكل البحر وملابس الصياد، واشترِ معدات ومكافآت</p>
     <div class="storeCoins">رصيدك: <b id="storeCoinCount">0</b> 🪙</div>
-    <div class="storeItem">
-      <div class="storeIcon">🔍</div>
-      <div class="storeItemInfo"><b>عدسة الزوم الإضافية</b><br>تقدر تستخدم أزرار التكبير والتصغير أثناء اللعب مجانًا؛ العدسة الإضافية لتحسين تأثير التكبير على الأسماك.<br><b>50 🪙</b></div>
-      <button id="buyZoomLens" type="button" onclick="buyZoomLens()">شراء</button>
-    </div>
-    <div class="storeItem">
-      <div class="storeIcon">🪱</div>
-      <div class="storeItemInfo"><b>طُعم الصياد</b><br>تمنحك 10 نقاط إضافية فور الشراء.<br><b>30 🪙</b></div>
-      <button id="buyBait" type="button" onclick="buyBait()">شراء</button>
-    </div>
+    <div class="storeSectionTitle">🌊 بحار وألوان جديدة</div>
+    <div class="storeItem"><div class="storeIcon">🩵</div><div class="storeItemInfo"><b>البحر الفيروزي</b><br>مياه زاهية وأمواج بلون فيروزي<br><b>60 🪙</b></div><button type="button" onclick="buySeaStyle(1,60)">شراء / اختيار</button></div>
+    <div class="storeItem"><div class="storeIcon">🌅</div><div class="storeItemInfo"><b>بحر الغروب</b><br>سماء برتقالية ومياه دافئة<br><b>85 🪙</b></div><button type="button" onclick="buySeaStyle(4,85)">شراء / اختيار</button></div>
+    <div class="storeItem"><div class="storeIcon">🌙</div><div class="storeItemInfo"><b>بحر الليل المضيء</b><br>ألوان ليلية زرقاء عميقة<br><b>110 🪙</b></div><button type="button" onclick="buySeaStyle(7,110)">شراء / اختيار</button></div>
+    <div class="storeSectionTitle">🚤 مراكب الصياد</div>
+    <div class="storeItem"><div class="storeIcon">🛶</div><div class="storeItemInfo"><b>مركب أزرق</b><br>طلاء أزرق لامع للمركب<br><b>70 🪙</b></div><button type="button" onclick="buyBoatStyle('blue',70)">شراء / اختيار</button></div>
+    <div class="storeItem"><div class="storeIcon">🚤</div><div class="storeItemInfo"><b>مركب ذهبي</b><br>طلاء ذهبي مميز<br><b>130 🪙</b></div><button type="button" onclick="buyBoatStyle('gold',130)">شراء / اختيار</button></div>
+    <div class="storeSectionTitle">🧑‍🌾 ملابس الصياد</div>
+    <div class="storeItem"><div class="storeIcon">🧢</div><div class="storeItemInfo"><b>الصياد المحترف</b><br>ملابس ومظهر جديد للصياد<br><b>55 🪙</b></div><button type="button" onclick="buyFisherLook('cap',55)">شراء / اختيار</button></div>
+    <div class="storeItem"><div class="storeIcon">🕶️</div><div class="storeItemInfo"><b>صياد المغامرات</b><br>مظهر مغامر ونظارة شمسية<br><b>95 🪙</b></div><button type="button" onclick="buyFisherLook('cool',95)">شراء / اختيار</button></div>
+    <div class="storeSectionTitle">💣 معدات ومساعدات الصيد</div>
+    <div class="storeItem"><div class="storeIcon">🧨</div><div class="storeItemInfo"><b>مفرقعات احتفالية</b><br>عرض احتفالي عند الشراء<br><b>15 🪙</b></div><button type="button" onclick="buyStoreBoost('fireworks',15)">شراء</button></div>
+    <div class="storeItem"><div class="storeIcon">💣</div><div class="storeItemInfo"><b>قنبلة صيد آمنة</b><br>دفعة نقاط إضافية في المرحلة الحالية<br><b>35 🪙</b></div><button type="button" onclick="buyStoreBoost('bomb',35)">شراء</button></div>
+    <div class="storeItem"><div class="storeIcon">🪱</div><div class="storeItemInfo"><b>طُعم ذهبي</b><br>يزيد نقاطك 20 نقطة<br><b>30 🪙</b></div><button type="button" onclick="buyStoreBoost('bait',30)">شراء</button></div>
+    <div class="storeItem"><div class="storeIcon">🎣</div><div class="storeItemInfo"><b>خمس رميات إضافية</b><br>أضف 5 رميات للمرحلة الحالية<br><b>45 🪙</b></div><button type="button" onclick="buyStoreBoost('throws',45)">شراء</button></div>
+    <div class="storeItem"><div class="storeIcon">🔍</div><div class="storeItemInfo"><b>عدسة الزوم الإضافية</b><br>تأثير تكبير إضافي للأسماك<br><b>50 🪙</b></div><button id="buyZoomLens" type="button" onclick="buyZoomLens()">شراء</button></div>
+    <div class="storeItem"><div class="storeIcon">🪱</div><div class="storeItemInfo"><b>طُعم الصياد</b><br>تمنحك 10 نقاط إضافية<br><b>30 🪙</b></div><button id="buyBait" type="button" onclick="buyBait()">شراء</button></div>
+    <p class="storeNote">تُحفظ مشتريات الأشكال المختارة على جهازك، ويمكنك تغييرها من المتجر في أي وقت.</p>
     <button class="storeClose" type="button" onclick="closeStore()">إغلاق المتجر</button>
   </div>
 </div>
