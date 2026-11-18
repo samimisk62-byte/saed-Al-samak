@@ -1189,10 +1189,14 @@ const rareRoll=Math.random();
 if(rareRoll<Math.min(0.075+level*0.002,0.12)){
  if(rareRoll<0.018){
   type={emoji:"🐠",value:120,rare:"diamond",rareName:"السمكة الماسية"};
- }else if(rareRoll<0.045){
-  type={emoji:"🐡",value:80,rare:"gold",rareName:"السمكة الذهبية"};
+ }else if(rareRoll<0.035){
+  type={emoji:"🧰",value:150,rare:"diamond",rareName:"صندوق الكنز الغارق"};
+ }else if(rareRoll<0.055){
+  type={emoji:"🐬",value:95,rare:"diamond",rareName:"دلفين الحظ"};
+ }else if(rareRoll<0.075){
+  type={emoji:"🦪",value:70,rare:"gold",rareName:"محارة اللؤلؤ"};
  }else{
-  type={emoji:"🐟",value:50,rare:"gold",rareName:"السمكة الذهبية"};
+  type={emoji:"🐡",value:80,rare:"gold",rareName:"السمكة الذهبية"};
  }
 }else{
  type=fish[Math.floor(Math.random()*fish.length)];
